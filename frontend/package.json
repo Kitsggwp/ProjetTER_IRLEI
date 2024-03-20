@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "d3": "^7.9.0",
+    "vue-d3-charts": "^0.2.8"
+  },
+  "devDependencies": {
+    "sass": "^1.72.0"
+  }
+}
