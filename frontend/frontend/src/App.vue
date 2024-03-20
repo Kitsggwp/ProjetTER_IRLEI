@@ -94,6 +94,7 @@ export default {
   position: fixed;
   left: 0;
   top: 0;
+  color:black;
 }
 .menu ul {
   list-style-type: none;
