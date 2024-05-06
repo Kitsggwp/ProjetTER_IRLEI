@@ -1,197 +1,260 @@
 <script setup>
-import axios from 'axios';
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue';
-import TheWelcome from './components/TheWelcome.vue';
-import WelcomeItem from './components/WelcomeItem.vue';
+
+import { ref } from 'vue';
+
+const searchTerm = ref('');
+const currentUser = 'Matthew Parker';
+const isDropdownOpen = ref(false);
+const isEpochDropdownOpen = ref(false);
+const isMeasureDropdownOpen = ref(false);
+const displayOption = ref('Best/Worst');
+const displayMeanMedian = ref(false);
+const displaySignificativeDifference = ref(false);
+
+const toggleDropdown = () => {
+  isDropdownOpen.value = !isDropdownOpen.value;
+};
+
+const toggleEpochDropdown = () => {
+  isEpochDropdownOpen.value = !isEpochDropdownOpen.value;
+};
+
+const toggleMeasureDropdown = () => {
+  isMeasureDropdownOpen.value = !isMeasureDropdownOpen.value;
+};
+
+
 </script>
 
+
 <template>
-  <div id="app">
-    <div id="headBar">
-       <--! Barre de navigation !-->
-      <nav>
-        <ul>
-          <li><RouterLink to="/">Accueil</RouterLink></li>
-          <li><RouterLink to="/about">A propos</RouterLink></li>
-          <li><RouterLink to="/contact">Contact</RouterLink></li>
-        </ul>
-      </nav> 
-    </div>
-    <div class="menu">
-      <ul>
-        <li @click="currentTab = 'Epoque'" :class="{ 'active': currentTab === 'Epoque' }">Epoque</li>
-        <li @click="currentTab = 'Requête'" :class="{ 'active': currentTab === 'Requête' }">Requête</li>
-        <li @click="currentTab = 'Système'" :class="{ 'active': currentTab === 'Système' }">Système</li>
-      </ul>
-    </div>
-    <div id="mid">
-      <header>
-        <h1>Interface IRLEI</h1>
-      </header>
-
-      <div class="parameters">
-        <h2>Paramètres</h2>
-        <div class="parameter">
-          <label for="epoque">Epoque:</label>
-          <select id="epoque" v-model="selectedEpoques" multiple>
-            <option v-for="epoque in epoques" :value="epoque">{{ epoque }}</option>
-          </select>
-        </div>
-        <div class="parameter">
-          <label for="systeme">Système:</label>
-          <select id="systeme" v-model="selectedSystemes" multiple>
-            <option v-for="systeme in systemes" :value="systeme">{{ systeme }}</option>
-          </select>
-        </div>
-        <div class="parameter">
-          <label for="mesure">Mesure:</label>
-          <select id="mesure" v-model="selectedMesures" multiple>
-            <option v-for="mesure in mesures" :value="mesure">{{ mesure }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="content">
-        <div v-if="currentTab === 'Epoque'">
-          <h2>Epoque</h2>
-          <HelloWorld></HelloWorld>
-        </div>
-        <div v-else-if="currentTab === 'Requête'">
-          <h2>Requête</h2>
-          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris dapibus urna nibh, nec consectetur erat
-            cursus eu. Etiam vitae dui eu ligula egestas tempus. Nam non vestibulum sapien. Pellentesque sagittis felis
-            quam. Proin enim nisi, porttitor quis diam nec, blandit scelerisque ligula. Vestibulum ante ipsum primis in
-            faucibus orci luctus et ultrices posuere cubilia curae; Nulla vel congue neque. Sed in est molestie,
-            convallis augue ut, pulvinar velit. Vestibulum id urna leo. Cras pulvinar magna ipsum, vitae iaculis ipsum
-            auctor eu. Etiam tristique ut quam eget consequat. Morbi eleifend massa quis orci viverra, eu porta sem
-            malesuada. Morbi justo ligula, pharetra nec ligula vel, dapibus suscipit erat. Donec sed lobortis ante.
-            Aliquam sit amet viverra est. Suspendisse id justo consectetur orci tincidunt suscipit.
-
-            Integer porttitor neque mi, eu aliquam sem aliquam quis. Pellentesque sit amet accumsan justo. Suspendisse
-            congue ipsum vitae quam elementum, at placerat enim scelerisque. Quisque id sem sed nulla convallis egestas
-            mattis non risus. Pellentesque convallis non lectus eget interdum. Etiam faucibus eros ac ex feugiat, a
-            ultrices lacus ultricies. Suspendisse a finibus mi. Proin accumsan ex ut nisi fringilla eleifend. Sed id
-            congue tellus.
-
-            Donec consequat pharetra purus id ornare. Sed finibus dui quis ante congue finibus. Maecenas vel facilisis
-            leo. Etiam vel ipsum quis tortor hendrerit fringilla. Nam et erat lobortis, vestibulum metus sed, ultricies
-            tortor. Mauris id euismod ex. Nunc ac magna a neque venenatis fermentum. Quisque vel sapien tortor.
-            Suspendisse venenatis rhoncus nunc, ut bibendum libero molestie in. Sed tristique eget lorem a dignissim.
-            Cras fringilla luctus congue. Aenean rutrum nibh fermentum leo dapibus tempor.</p>
-          <!-- Contenu de la page Requête -->
-        </div>
-        <div v-else>
-          <h2>Système</h2>
-          <TheWelcome></TheWelcome>
-          <!-- Contenu de la page Système -->
+  <!-- Headbar -->
+  <div class="bg-gray-800 text-white min-h-screen" id="app" data-v-app>
+    <div class="bg-gray-900 p-4 flex justify-between items-center">
+      <h1 class="text-xl">Interface recherche</h1>
+      <div>
+        <input v-model="searchTerm" class="bg-gray-700 p-2 rounded" placeholder="Chercher un système" type="text" id="searchBar"/>
+        <div class="inline-block relative">
+          <button class="ml-4 bg-gray-700 p-2 rounded" @click="toggleDropdown" id="profileButton">
+            {{ currentUser }}
+            <i class="fas fa-chevron-down"></i>
+          </button>
+          <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded">
+            <a class="block px-4 py-2 hover:bg-gray-600" href="#">Profile</a>
+            <a class="block px-4 py-2 hover:bg-gray-600" href="#">Logout</a>
+          </div>
         </div>
       </div>
     </div>
-
+    <div class="flex">
+      <!-- Sidebar -->
+      <div class="w-64 bg-gray-900 p-5" id="sidebar">
+        
+        <div class="text-gray-400">IRLEI</div>
+        <div class="mt-10">
+          <a class="flex items-center mb-5 text-gray-300 hover:text-white" href="#">
+            <i class="fas fa-calendar-alt mr-2"></i>
+            <span>Époques</span>
+          </a>
+          <a class="flex items-center mb-5 text-gray-300 hover:text-white" href="#">
+            <i class="fas fa-search mr-2"></i>
+            <span>Requêtes</span>
+          </a>
+          <a class="flex items-center mb-5 text-gray-300 hover:text-white" href="#">
+            <i class="fas fa-cogs mr-2"></i>
+            <span>Systèmes</span>
+          </a>
+          <a class="flex items-center mb-5 text-gray-300 hover:text-white" href="#">
+            <i class="fas fa-sliders-h mr-2"></i>
+            <span>Settings</span>
+          </a>
+          
+        </div>
+        <div class="absolute bottom-0 p-5">
+          <div>Help</div>
+          <div>Contact us</div>
+        </div>
+      </div>
+      <!-- Main content -->
+      <div class="flex-1 p-10" id="main">
+        <div class="bg-gray-700 p-5 rounded-lg">
+          <div class="flex justify-between items-center mb-5">
+            <div class="text-gray-400">Côté macro / tâches d'évaluation globale</div>
+            <div>
+              <button class="fas fa-cog text-white bg-transparent border-none cursor-pointer"></button>
+              <button class="fas fa-filter ml-2 text-white bg-transparent border-none cursor-pointer"></button>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4 mb-5">
+            <div class="relative inline-block">
+              <button @click="toggleEpochDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
+                <i class="fas fa-calendar-alt mr-2"></i>
+                <span>Époques</span>
+                <i class="fas fa-chevron-down ml-2"></i>
+              </button>
+              <div v-if="isEpochDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
+                <a class="block px-4 py-2 hover:bg-gray-600" href="#">2023</a>
+                <a class="block px-4 py-2 hover:bg-gray-600" href="#">2022</a>
+              </div>
+            </div>
+            <div class="relative inline-block">
+              <button @click="toggleMeasureDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
+                <i class="fas fa-tachometer-alt mr-2"></i>
+                <span>Mesures</span>
+                <i class="fas fa-chevron-down ml-2"></i>
+              </button>
+              <div v-if="isMeasureDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
+                <a class="block px-4 py-2 hover:bg-gray-600" href="#">recip_rank</a>
+                <a class="block px-4 py-2 hover:bg-gray-600" href="#">other_metric</a>
+              </div>
+            </div>
+          </div>
+          <div class="mb-5">
+            <select v-model="displayOption" class="bg-gray-800 text-white p-2 rounded">
+              <option>Best/Worst Overall</option>
+            </select>
+            <input v-model="displayMeanMedian" class="ml-4" type="checkbox" />Display Mean/Median?
+            <input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" />Display Significative
+            difference only?
+          </div>
+          <div>
+            <!-- Placeholder for graph -->
+            <img alt="Line graph showing system performance over time with multiple lines for different systems"
+              height="400" src="./assets/graphique.png" width="600" />
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
-<script>
 
-
-
-
-export default {
-  data() {
-
-    return {
-      selectedEpoques: [],
-      selectedSystemes: [],
-      selectedMesures: [],
-      epoques: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      systemes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      mesures: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-      responseData: null,
-      currentTab: 'Epoque' // Onglet actif par défaut
-    };
-  },
-  methods: {
-    fetchData() {
-      axios.get('http://127.0.0.1:8000/test')
-        .then(response => {
-          this.responseData = response.data;
-          console.log(response.data)
-        })
-        .catch(error => {
-          console.error('Erreur lors de la récupération des données :', error);
-        });
-    }
-  },
-  mounted() {
-    this.fetchData(); // Appeler fetchData lorsque le composant est monté
-  }
-};
-</script>
 
 <style>
-.parameters {
-  margin-top: 40px;
-}
-
-.parameters {
-  display: flex;
-  justify-content: center;
-  flex-direction: row;
-  margin-right: 20px;
-  /* Ajoute un espacement entre les paramètres */
-}
-
-.parameters label {
-  margin-right: 5px;
-  /* Ajoute un petit espacement entre le label et le select */
-}
-
 #app {
-  display: flex;
-  flex-direction: row;
-}
-
-#mid {
-  display: flex;
-  flex-direction: column;
-}
-
-/* Styles pour le menu */
-.menu {
-  width: 200px;
-  background-color: #f2f2f2;
-  height: 100vh;
-  position: fixed;
-  left: 0;
-  top: 0;
-  color: black;
-}
-
-.menu ul {
-  list-style-type: none;
+  font-family: 'Arial', sans-serif;
+  margin: 0;
   padding: 0;
 }
 
-.menu li {
-  padding: 15px;
-  cursor: pointer;
-  border-bottom: 1px solid #ddd;
+#sidebar {
+  bottom: 0;
 }
 
-.menu li.active {
-  background-color: #ddd;
+div #main {
+  border-radius: 20px;
 }
 
-/* Styles pour le header */
-header {
-  position: fixed;
-  top: 0;
-  padding: 20px;
+#searchBar {
+  border-radius: 5px;
+  height : 2.5rem;
+  display: inline-block;
+}
+#profileButton{
+color: white;
 }
 
-/* Styles pour le contenu */
-.content {
-  padding: 20px;
+.bg-gray-700 {
+  background-color: #343D4D;
 }
+
+.bg-gray-800 {
+  background-color: #1E2836;
+}
+
+.bg-gray-900 {
+  background-color: #111827;
+}
+
+.text-white {
+  color: #ffffff;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.p-4 {
+  padding: 1rem;
+}
+
+.p-5 {
+  padding: 1.25rem;
+}
+
+.mb-5 {
+  margin-bottom: 1.25rem;
+}
+
+.ml-4 {
+  margin-left: 1rem;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.mt-10 {
+  margin-top: 2.5rem;
+}
+
+.justify-between {
+  justify-content: space-between;
+}
+
+.items-center {
+  align-items: center;
+}
+.relative {
+  position: relative;
+}
+.flex {
+  display: flex;
+}
+.inline-block {
+  display: inline-block;
+}
+.block {
+  display: block;
+}
+
+.w-64 {
+  width: 16rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+}
+
+.text-gray-400 {
+  color: #bdc3c7;
+}
+
+.span {
+  color: #ffffff;
+
+}
+
+.hover\:text-white:hover {
+  color: #ffffff;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.bottom-0 {
+  bottom: 0;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+body {
+  line-height: inherit;
+}
+
+
+/* Ajoutez le reste des classes Tailwind traduites en CSS ici */
 </style>
