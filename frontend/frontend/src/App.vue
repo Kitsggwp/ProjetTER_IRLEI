@@ -38,6 +38,7 @@ const toggleMeasureDropdown = () => {
           <button class="ml-4 bg-gray-700 p-2 rounded" @click="toggleDropdown" id="profileButton">
             {{ currentUser }}
             <i class="fas fa-chevron-down"></i>
+            <img alt="Profile picture" id="pp"src="./assets/profile.png" />
           </button>
           <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded">
             <a class="block px-4 py-2 hover:bg-gray-600" href="#">Profile</a>
@@ -152,6 +153,12 @@ div #main {
 }
 #profileButton{
 color: white;
+height: 2.5rem;
+}
+#pp{
+  height: 25px;
+  width: 25px;
+  vertical-align: middle;
 }
 
 .bg-gray-700 {
