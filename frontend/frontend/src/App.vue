@@ -29,6 +29,29 @@ import WelcomeItem from './components/WelcomeItem.vue';
       <header>
         <h1>Interface IRLEI</h1>
       </header>
+
+      <div class="parameters">
+        <h2>Paramètres</h2>
+        <div class="parameter">
+          <label for="epoque">Epoque:</label>
+          <select id="epoque" v-model="selectedEpoques" multiple>
+            <option v-for="epoque in epoques" :value="epoque">{{ epoque }}</option>
+          </select>
+        </div>
+        <div class="parameter">
+          <label for="systeme">Système:</label>
+          <select id="systeme" v-model="selectedSystemes" multiple>
+            <option v-for="systeme in systemes" :value="systeme">{{ systeme }}</option>
+          </select>
+        </div>
+        <div class="parameter">
+          <label for="mesure">Mesure:</label>
+          <select id="mesure" v-model="selectedMesures" multiple>
+            <option v-for="mesure in mesures" :value="mesure">{{ mesure }}</option>
+          </select>
+        </div>
+      </div>
+
       <div class="content">
         <div v-if="currentTab === 'Epoque'">
           <h2>Epoque</h2>
@@ -78,6 +101,12 @@ export default {
   data() {
 
     return {
+      selectedEpoques: [],
+      selectedSystemes: [],
+      selectedMesures: [],
+      epoques: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      systemes: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      mesures: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
       responseData: null,
       currentTab: 'Epoque' // Onglet actif par défaut
     };
@@ -101,6 +130,23 @@ export default {
 </script>
 
 <style>
+.parameters {
+  margin-top: 40px;
+}
+
+.parameters {
+  display: flex;
+  justify-content: center;
+  flex-direction: row;
+  margin-right: 20px;
+  /* Ajoute un espacement entre les paramètres */
+}
+
+.parameters label {
+  margin-right: 5px;
+  /* Ajoute un petit espacement entre le label et le select */
+}
+
 #app {
   display: flex;
   flex-direction: row;

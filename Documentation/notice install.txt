@@ -1,0 +1,21 @@
+Intaller localement le projet :
+
+- cloner le projet
+git clone https://github.com/Kitsggwp/ProjetTER_IRLEI.git
+
+faire fonctionner le backend :
+
+- Aller dans le dossier backend/Exceir
+- lancer la commande pour installer les dépendances (django, corsheader...)
+pip install -r requirements.txt 
+- lancer le projet backend avec
+python manage.py runserver
+
+faire fonctionner le frontend :
+
+- Aller dans le dossier frontend/frontend
+- Si vous n'avez pas node.js il faut l'installer (https://kinsta.com/fr/blog/comment-installer-node-js/)
+- faire la commande 
+npm install
+- lancer le projet front avec 
+npm run dev
