@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     # path('', views.index, name='index'),
+    
     path('test', views.getData, name='test'),
     path('api-auth/', include('rest_framework.urls'), name='api'),
     path('', views.index, name='index'),
