@@ -29,7 +29,7 @@ const toggleMeasureDropdown = () => {
 
 <template>
   <!-- Headbar -->
-  <div class="bg-gray-800 text-white min-h-screen" id="app" data-v-app>
+
     <div class="bg-gray-900 p-4 flex justify-between items-center">
       <h1 class="text-xl">Interface recherche</h1>
       <div>
@@ -49,24 +49,24 @@ const toggleMeasureDropdown = () => {
     </div>
     <div class="flex">
       <!-- Sidebar -->
-      <div class="w-64 bg-gray-900 p-5" id="sidebar">
+      <div class="bg-gray-900 p-5" id="sidebar">
         
         <div class="text-gray-400">IRLEI</div>
         <div class="mt-10">
-          <a class="flex items-center mb-5 text-gray-300 hover:text-white" href="#">
-            <i class="fas fa-calendar-alt mr-2"></i>
+          <a class="flex items-center text-gray-300 hover:text-white" href="#">
+            <img src="./assets/calendarW.svg" id="sbLogo"></img>
             <span>Époques</span>
           </a>
-          <a class="flex items-center mb-5 text-gray-300 hover:text-white" href="#">
-            <i class="fas fa-search mr-2"></i>
+          <a class="flex items-center text-gray-300 hover:text-white" href="#">
+            <img src="./assets/loupe.svg" id="sbLogo"></img>
             <span>Requêtes</span>
           </a>
-          <a class="flex items-center mb-5 text-gray-300 hover:text-white" href="#">
-            <i class="fas fa-cogs mr-2"></i>
+          <a class="flex items-center text-gray-300 hover:text-white" href="#">
+            <img src="./assets/system.svg" id="sbLogo"></img>
             <span>Systèmes</span>
           </a>
-          <a class="flex items-center mb-5 text-gray-300 hover:text-white" href="#">
-            <i class="fas fa-sliders-h mr-2"></i>
+          <a class="flex items-center text-gray-300 hover:text-white" href="#">
+            <img src="./assets/settings.svg" id="sbLogo"></img>
             <span>Settings</span>
           </a>
           
@@ -78,14 +78,22 @@ const toggleMeasureDropdown = () => {
       </div>
       <!-- Main content -->
       <div class="flex-1 p-10" id="main">
-        <div class="bg-gray-700 p-5 rounded-lg">
+        <div class="bg-gray-700 p-5 rounded-lg framed">
           <div class="flex justify-between items-center mb-5">
             <div class="text-gray-400">Côté macro / tâches d'évaluation globale</div>
-            <div>
-              <button class="fas fa-cog text-white bg-transparent border-none cursor-pointer"></button>
-              <button class="fas fa-filter ml-2 text-white bg-transparent border-none cursor-pointer"></button>
-            </div>
-          </div>
+              <div>
+                <a>
+                  <button class="cursor-pointer">
+                    <img id="sbLogo" src="./assets/filter.svg"></img>
+                  </button>
+                </a>
+                <a>
+                  <button class="cursor-pointer">
+                    <img id="sbLogo" src="./assets/gear.svg"></img>
+                  </button>  
+                </a>
+              </div>
+              </div>
           <div class="grid grid-cols-2 gap-4 mb-5">
             <div class="relative inline-block">
               <button @click="toggleEpochDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
@@ -126,30 +134,30 @@ const toggleMeasureDropdown = () => {
         </div>
       </div>
     </div>
-  </div>
+  
 </template>
 
 
 
 <style>
-#app {
-  font-family: 'Arial', sans-serif;
-  margin: 0;
-  padding: 0;
-}
 
 #sidebar {
   bottom: 0;
+  width:20%;
 }
-
-div #main {
-  border-radius: 20px;
+#sidebar a {
+  padding: 0.75rem;
+  margin-bottom: 1rem;
 }
 
 #searchBar {
   border-radius: 5px;
   height : 2.5rem;
   display: inline-block;
+}
+#main {
+  background-color: #1E2836;
+  width: 100%;
 }
 #profileButton{
 color: white;
@@ -159,6 +167,23 @@ height: 2.5rem;
   height: 25px;
   width: 25px;
   vertical-align: middle;
+}
+#sbLogo{
+  height: 20px;
+  width: 20px;
+  vertical-align: middle;
+  color: white;
+  margin-right: 10px;
+}
+.cursor-pointer{
+  cursor: pointer;
+  background: none;
+}
+
+.a,img{
+  align-items: center;
+  margin:0px;
+  padding:0px;
 }
 
 .bg-gray-700 {
@@ -228,7 +253,13 @@ height: 2.5rem;
 .w-64 {
   width: 16rem;
 }
-
+.rounded-lg{
+  border-radius: 0.375rem;
+}
+.framed{
+  margin: 2rem;
+  padding: 2rem;
+}
 .text-xl {
   font-size: 1.25rem;
 }
