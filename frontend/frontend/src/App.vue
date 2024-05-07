@@ -1,27 +1,17 @@
 <script setup>
 
 import { ref } from 'vue';
-
+import Epoque from './components/Epoque.vue';
 const searchTerm = ref('');
 const currentUser = 'Matthew Parker';
 const isDropdownOpen = ref(false);
-const isEpochDropdownOpen = ref(false);
-const isMeasureDropdownOpen = ref(false);
-const displayOption = ref('Best/Worst');
-const displayMeanMedian = ref(false);
-const displaySignificativeDifference = ref(false);
+
+
 
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
 
-const toggleEpochDropdown = () => {
-  isEpochDropdownOpen.value = !isEpochDropdownOpen.value;
-};
-
-const toggleMeasureDropdown = () => {
-  isMeasureDropdownOpen.value = !isMeasureDropdownOpen.value;
-};
 
 
 </script>
@@ -31,7 +21,7 @@ const toggleMeasureDropdown = () => {
   <!-- Headbar -->
 
     <div class="bg-gray-900 p-4 flex justify-between items-center">
-      <h1 class="text-xl">Interface recherche</h1>
+      <h1 id="title">Interface recherche</h1>
       <div>
         <input v-model="searchTerm" class="bg-gray-700 p-2 rounded" placeholder="Chercher un système" type="text" id="searchBar"/>
         <div class="inline-block relative">
@@ -78,60 +68,8 @@ const toggleMeasureDropdown = () => {
       </div>
       <!-- Main content -->
       <div class="flex-1 p-10" id="main">
-        <div class="bg-gray-700 p-5 rounded-lg framed">
-          <div class="flex justify-between items-center mb-5">
-            <div class="text-gray-400">Côté macro / tâches d'évaluation globale</div>
-              <div>
-                <a>
-                  <button class="cursor-pointer">
-                    <img id="sbLogo" src="./assets/filter.svg"></img>
-                  </button>
-                </a>
-                <a>
-                  <button class="cursor-pointer">
-                    <img id="sbLogo" src="./assets/gear.svg"></img>
-                  </button>  
-                </a>
-              </div>
-              </div>
-          <div class="grid grid-cols-2 gap-4 mb-5">
-            <div class="relative inline-block">
-              <button @click="toggleEpochDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
-                <i class="fas fa-calendar-alt mr-2"></i>
-                <span>Époques</span>
-                <i class="fas fa-chevron-down ml-2"></i>
-              </button>
-              <div v-if="isEpochDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
-                <a class="block px-4 py-2 hover:bg-gray-600" href="#">2023</a>
-                <a class="block px-4 py-2 hover:bg-gray-600" href="#">2022</a>
-              </div>
-            </div>
-            <div class="relative inline-block">
-              <button @click="toggleMeasureDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
-                <i class="fas fa-tachometer-alt mr-2"></i>
-                <span>Mesures</span>
-                <i class="fas fa-chevron-down ml-2"></i>
-              </button>
-              <div v-if="isMeasureDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
-                <a class="block px-4 py-2 hover:bg-gray-600" href="#">recip_rank</a>
-                <a class="block px-4 py-2 hover:bg-gray-600" href="#">other_metric</a>
-              </div>
-            </div>
-          </div>
-          <div class="mb-5">
-            <select v-model="displayOption" class="bg-gray-800 text-white p-2 rounded">
-              <option>Best/Worst Overall</option>
-            </select>
-            <input v-model="displayMeanMedian" class="ml-4" type="checkbox" />Display Mean/Median?
-            <input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" />Display Significative
-            difference only?
-          </div>
-          <div>
-            <!-- Placeholder for graph -->
-            <img alt="Line graph showing system performance over time with multiple lines for different systems"
-              height="400" src="./assets/graphique.png" width="600" />
-          </div>
-        </div>
+        <!-- Fenêtre qui change -->
+        <Epoque/>
       </div>
     </div>
   
@@ -140,6 +78,36 @@ const toggleMeasureDropdown = () => {
 
 
 <style>
+#title{
+  color: white;
+  font-weight: bolder;
+  font-size: 1.5rem;
+  
+}
+
+button{
+  background: none;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  margin-right : 10px;
+  color: white;
+  font-size: 1rem;
+  font-family: Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
+
+select{
+  background: none;
+  border: none;
+  border-radius: 5px;
+  padding: 5px;
+  margin-right : 10px;
+  color: white;
+  font-size: 1rem;
+  font-family: Arial, Helvetica, sans-serif;
+  cursor: pointer;
+}
 
 #sidebar {
   bottom: 0;
@@ -149,11 +117,25 @@ const toggleMeasureDropdown = () => {
   padding: 0.75rem;
   margin-bottom: 1rem;
 }
+#sidebar > div > a, .green {
+  text-decoration: none;
+  color: hsla(160, 100%, 37%, 1);
+  transition: 0.4s;
+  
+  
+}
+
+#sidebar > div > a:hover {
+    background-color: hsla(160, 100%, 37%, 0.2);
+  }
 
 #searchBar {
   border-radius: 5px;
   height : 2.5rem;
   display: inline-block;
+  font-family: Arial, Helvetica, sans-serif;
+  text-align: center;
+  
 }
 #main {
   background-color: #1E2836;
@@ -175,6 +157,10 @@ height: 2.5rem;
   color: white;
   margin-right: 10px;
 }
+#graph{
+  padding: 20px;
+  border: 1px solid white;
+}
 .cursor-pointer{
   cursor: pointer;
   background: none;
@@ -185,6 +171,8 @@ height: 2.5rem;
   margin:0px;
   padding:0px;
 }
+
+
 
 .bg-gray-700 {
   background-color: #343D4D;
