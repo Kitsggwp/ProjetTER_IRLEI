@@ -5,7 +5,7 @@ import Epoque from './components/Epoque.vue';
 const searchTerm = ref('');
 const currentUser = 'Matthew Parker';
 const isDropdownOpen = ref(false);
-
+const currentWindow = ref('Epoque');
 
 
 const toggleDropdown = () => {
@@ -31,8 +31,8 @@ const toggleDropdown = () => {
             <img alt="Profile picture" id="pp"src="./assets/profile.png" />
           </button>
           <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded">
-            <a class="block px-4 py-2 hover:bg-gray-600" href="#">Profile</a>
-            <a class="block px-4 py-2 hover:bg-gray-600" href="#">Logout</a>
+            <a class="green block px-4 py-2 hover:bg-gray-600" href="#">Profile</a>
+            <a class="green block px-4 py-2 hover:bg-gray-600" href="#">Logout</a>
           </div>
         </div>
       </div>
@@ -69,6 +69,8 @@ const toggleDropdown = () => {
       <!-- Main content -->
       <div class="flex-1 p-10" id="main">
         <!-- Fenêtre qui change -->
+        
+        
         <Epoque/>
       </div>
     </div>
