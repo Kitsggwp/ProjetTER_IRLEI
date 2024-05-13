@@ -4,7 +4,6 @@ import { ref } from 'vue';
 const isEpochDropdownOpen = ref(false);
 const isMeasureDropdownOpen = ref(false);
 const displayMeanMedian = ref(false);
-const displayOption = ref('Best/Worst');
 const displaySignificativeDifference = ref(false);
 
 const toggleEpochDropdown = () => {
@@ -61,9 +60,12 @@ const toggleMeasureDropdown = () => {
       </div>
     </div>
     <div class="mb-5">
-      <select v-model="displayOption" class="bg-gray-800 text-white p-2 rounded">
+      Highlight :   
+      <select class="bg-gray-800 text-white p-2 rounded" name="highlightEpoque" id="highlightEpoque">
+        <option>X</option>
         <option>Best/Worst Overall</option>
       </select>
+      
       <input v-model="displayMeanMedian" class="ml-4" type="checkbox" />Display Mean/Median?
       <input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" />Display Significative
       difference only?

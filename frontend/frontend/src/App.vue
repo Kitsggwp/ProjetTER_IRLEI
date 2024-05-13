@@ -9,14 +9,23 @@ const searchTerm = ref('');
 const currentUser = 'Matthew Parker';
 const isDropdownOpen = ref(false);
 const currentWindow = ref('Epoque');
+//Loging in
+const isConnected = ref(false);
+const isLoginScreenDisplayed = ref(false);
+const displayLogin = () => {
+  isLoginScreenDisplayed.value = true;
+};
+const HideLogin = () => {
+  isLoginScreenDisplayed.value = false;
+};
+
+
+
 
 const currentComponent = ref('Epoque'); // Par défaut : affiche Epoque
 const setCurrentComponent = (componentName) => {
   currentComponent.value = componentName;
 };
-
-
-
 const toggleDropdown = () => {
   isDropdownOpen.value = !isDropdownOpen.value;
 };
@@ -39,9 +48,9 @@ const toggleDropdown = () => {
             <i class="fas fa-chevron-down"></i>
             <img alt="Profile picture" id="pp"src="./assets/profile.png" />
           </button>
-          <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded">
-            <a class="green block px-4 py-2 hover:bg-gray-600" href="#">Profile</a>
-            <a class="green block px-4 py-2 hover:bg-gray-600" href="#">Logout</a>
+          <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded" id="profilDiv">
+            <a class="green block" href="#">Profile</a>
+            <a @click="displayLogin" class="green block" href="#">Login</a>
           </div>
         </div>
       </div>
@@ -79,6 +88,27 @@ const toggleDropdown = () => {
       <div class="flex-1 p-10" id="main">
         <!-- Fenêtre qui change -->
         <component :is="currentComponent"></component>
+
+        <!--Login -->
+        <div v-if="isLoginScreenDisplayed" class="loginBox">
+          
+          <div class="loginContent">    
+           </br>
+            <span class="close" @click="HideLogin"></span>
+            <b style="padding-right: 20px;">Connexion</b>
+            <a style="border: 1px solid red; color: red; cursor: pointer;" @click="HideLogin">X</a>
+            </br>
+            <div>
+              <form @submit.prevent="submitForm">
+                <input type="email" placeholder="Email Utilisateur" name="username" v-model="username">
+                <input type="password" placeholder="Mot de passe" name="password"  v-model="password">
+                <button type="submit">Connexion</button>
+              </form>
+             
+           </div>
+          </div>
+          
+        </div>
       </div>
     </div>
   
@@ -127,9 +157,40 @@ select{
   font-weight: bolder;
   
 }
+.loginBox{
+  
+  position: fixed;
+  z-index: 1;
+  width: 30%;
+  height: 30%;
+  left: 40%;
+  top: 40%;
+}
+
+.loginContent{
+  background-color: #343D4D;
+  padding: 20px;
+  border-radius: 5px;
+  text-align: center;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 1.5rem;
+  color: white;
+}
 
 .headBar{
   padding: 1.5rem;
+}
+#profilDiv > a, .green {
+  text-decoration: none;;
+  transition: 0.4s;  
+  background-color: #1E2836;
+  padding: 0.5rem;
+}
+
+#profilDiv > a:hover, .green {
+  color: white;
+  background-color: rgba(20, 255, 177, 0.511);
+  transition: 0.4s;  
 }
 
 #sidebar {
@@ -143,9 +204,7 @@ select{
 #sidebar > div > a, .green {
   text-decoration: none;
   color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  
-  
+  transition: 0.4s;  
 }
 
 #sidebar > div > a:hover {
@@ -305,7 +364,7 @@ body {
 }
 
 
-/* Ajoutez le reste des classes Tailwind traduites en CSS ici */
+/* Ajoutez le reste des classes ici */
 </style>
 <script>
 import { ref } from 'vue';
