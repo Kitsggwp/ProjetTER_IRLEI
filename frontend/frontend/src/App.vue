@@ -2,10 +2,19 @@
 
 import { ref } from 'vue';
 import Epoque from './components/Epoque.vue';
+import Query from './components/Query.vue';
+import System from './components/System.vue';
+
 const searchTerm = ref('');
 const currentUser = 'Matthew Parker';
 const isDropdownOpen = ref(false);
 const currentWindow = ref('Epoque');
+
+const currentComponent = ref('Epoque'); // Par défaut : affiche Epoque
+const setCurrentComponent = (componentName) => {
+  currentComponent.value = componentName;
+};
+
 
 
 const toggleDropdown = () => {
@@ -20,7 +29,7 @@ const toggleDropdown = () => {
 <template>
   <!-- Headbar -->
 
-    <div class="bg-gray-900 p-4 flex justify-between items-center">
+    <div class="bg-gray-900 headBar flex justify-between items-center">
       <h1 id="title">Interface recherche</h1>
       <div>
         <input v-model="searchTerm" class="bg-gray-700 p-2 rounded" placeholder="Chercher un système" type="text" id="searchBar"/>
@@ -37,21 +46,21 @@ const toggleDropdown = () => {
         </div>
       </div>
     </div>
-    <div class="flex">
       <!-- Sidebar -->
+    <div class="flex">
       <div class="bg-gray-900 p-5" id="sidebar">
         
         <div class="text-gray-400">IRLEI</div>
         <div class="mt-10">
-          <a class="flex items-center text-gray-300 hover:text-white" href="#">
+          <a @click="setCurrentComponent('Epoque')" class="flex items-center text-gray-300 hover:text-white" href="#">
             <img src="./assets/calendarW.svg" id="sbLogo"></img>
             <span>Époques</span>
           </a>
-          <a class="flex items-center text-gray-300 hover:text-white" href="#">
-            <img src="./assets/loupe.svg" id="sbLogo"></img>
+          <a @click="setCurrentComponent('Query')" class="flex items-center text-gray-300 hover:text-white" href="#">
+            <img  src="./assets/loupe.svg" id="sbLogo"></img>
             <span>Requêtes</span>
           </a>
-          <a class="flex items-center text-gray-300 hover:text-white" href="#">
+          <a @click="setCurrentComponent('System')" class="flex items-center text-gray-300 hover:text-white" href="#">
             <img src="./assets/system.svg" id="sbLogo"></img>
             <span>Systèmes</span>
           </a>
@@ -69,9 +78,7 @@ const toggleDropdown = () => {
       <!-- Main content -->
       <div class="flex-1 p-10" id="main">
         <!-- Fenêtre qui change -->
-        
-        
-        <Epoque/>
+        <component :is="currentComponent"></component>
       </div>
     </div>
   
@@ -80,6 +87,9 @@ const toggleDropdown = () => {
 
 
 <style>
+body{
+  background-color: #111827
+}
 #title{
   color: white;
   font-weight: bolder;
@@ -109,6 +119,17 @@ select{
   font-size: 1rem;
   font-family: Arial, Helvetica, sans-serif;
   cursor: pointer;
+}
+
+.subtitle{
+  color: white;
+  font-size: 1.25rem;
+  font-weight: bolder;
+  
+}
+
+.headBar{
+  padding: 1.5rem;
 }
 
 #sidebar {
@@ -286,3 +307,25 @@ body {
 
 /* Ajoutez le reste des classes Tailwind traduites en CSS ici */
 </style>
+<script>
+import { ref } from 'vue';
+
+export default {
+  components: {
+    Epoque,
+    Query,
+    System
+  },
+  setup() {
+    return {
+      searchTerm,
+      currentUser,
+      isDropdownOpen,
+      currentWindow,
+      setCurrentComponent,
+      currentComponent,
+      toggleDropdown
+    };
+  }
+};
+</script>

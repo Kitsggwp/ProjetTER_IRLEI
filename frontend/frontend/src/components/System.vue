@@ -19,7 +19,7 @@ const toggleMeasureDropdown = () => {
 <template>
   <div class="bg-gray-700 p-5 rounded-lg framed">
     <div class="flex justify-between items-center mb-5">
-      <div class="subtitle">Évaluation des époques</div>
+      <div class="subtitle">Évaluation des systèmes au global</div>
       <div>
         <a>
           <button @click="toggleFilterDropdown" class="cursor-pointer">
@@ -37,12 +37,13 @@ const toggleMeasureDropdown = () => {
       <div class="relative inline-block">
         <button @click="toggleEpochDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
           <i class="fas fa-calendar-alt mr-2"></i>
-          <span>Époques</span>
+          <span>Systèmes</span>
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
         <div v-if="isEpochDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
-          <a class="green block px-4 py-2 hover:bg-gray-600" href="#">2023</a>
-          <a class=" green block px-4 py-2 hover:bg-gray-600" href="#">2022</a>
+          <a class="green block px-4 py-2 hover:bg-gray-600" href="#">Gogle</a>
+          <a class=" green block px-4 py-2 hover:bg-gray-600" href="#">Qwant</a>
+          <a class=" green block px-4 py-2 hover:bg-gray-600" href="#">...</a>
         </div>
       </div>
       <div class="relative inline-block">
@@ -71,7 +72,7 @@ const toggleMeasureDropdown = () => {
     <!-- Placeholder for graph -->
     <div id="graph">
       <img alt="Line graph showing system performance over time with multiple lines for different systems"
-        height="400" src="../assets/graphique.png" width="600" />
+        height="400" src="../assets/graphique3.png" width="600" />
     </div>
   </div>
 </template>
