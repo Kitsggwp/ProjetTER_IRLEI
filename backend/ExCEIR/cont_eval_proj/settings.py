@@ -29,6 +29,7 @@ ALLOWED_HOSTS = []
 
 DJOSER = {
     'PASSWORD_RESET_CONFIRM_URL': 'api/v1/users/reset_password_confirm/{uid}/{token}',
+  
 }
 
 REST_FRAMEWORK = {

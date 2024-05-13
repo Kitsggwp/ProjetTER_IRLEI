@@ -9,6 +9,9 @@ import os
 from django.conf import settings # STATIC_ROOT
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
+from rest_framework import viewsets
+from .models import Eval
+from .serializers import EvalSerializer
 
 import pandas as pd
 import numpy as np
@@ -23,6 +26,9 @@ from statsmodels.stats.meta_analysis import (
 )
 import json
 
+class EvalViewSet(viewsets.ModelViewSet):
+    queryset = Eval.objects.all()
+    serializer_class = EvalSerializer
 
 @api_view(['GET'])
 def getData(request):

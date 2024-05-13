@@ -1,10 +1,12 @@
 from django.urls import path, include
-
+from rest_framework.routers import DefaultRouter
 from . import views
 
+router = DefaultRouter()
+router.register('eval', views.EvalViewSet, basename='eval' )
 urlpatterns = [
     # path('', views.index, name='index'),
-    
+    path('api/', include(router.urls)),
     path('test', views.getData, name='test'),
     path('api-auth/', include('rest_framework.urls'), name='api'),
     path('', views.index, name='index'),

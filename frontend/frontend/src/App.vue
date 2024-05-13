@@ -4,15 +4,12 @@ import { ref } from 'vue';
 import Epoque from './components/Epoque.vue';
 import Query from './components/Query.vue';
 import System from './components/System.vue';
-
+import axios from 'axios'
 const searchTerm = ref('');
-const currentUser = 'Matthew Parker';
 const isDropdownOpen = ref(false);
 const currentWindow = ref('Epoque');
-//Loging in
-const isConnected = ref(false);
 const isLoginScreenDisplayed = ref(false);
-
+const isSignupScreenDisplayed = ref(false);
 
 
 
@@ -37,19 +34,35 @@ const toggleDropdown = () => {
       <h1 id="title">Interface recherche</h1>
       <div>
         <input v-model="searchTerm" class="bg-gray-700 p-2 rounded" placeholder="Chercher un système" type="text" id="searchBar"/>
-        <div class="inline-block relative">
+  
+        <div v-if="isAuthenticated" class="inline-block relative">
+          <!-- Contenu à afficher lorsque l'utilisateur est connecté -->
           <button class="ml-4 bg-gray-700 p-2 rounded" @click="toggleDropdown" id="profileButton">
-            {{ currentUser }}
-            <i class="fas fa-chevron-down"></i>
-            <img alt="Profile picture" id="pp"src="./assets/profile.png" />
+          {{ name }}
+          <i class="fas fa-chevron-down"></i>
+          <img alt="Profile picture" id="pp" src="./assets/profile.png" />
           </button>
-          <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded" id="profilDiv">
-            <a class="green block" href="#">Profile</a>
-            <a @click="isLoginScreenDisplayed =! isLoginScreenDisplayed" class="green block" href="#">Login</a>
-          </div>
+            <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded" id="profilDiv">
+              <a class="green block" href="#">Profile</a>
+              <a @click="logout" class="green block" href="#">Logout</a>
+            </div>
+        </div>
+      <div v-else>
+        <!-- Contenu à afficher lorsque l'utilisateur n'est pas connecté -->
+        <button class="ml-4 bg-gray-700 p-2 rounded" @click="toggleDropdown" id="profileButton">
+          Se connecter
+          <i class="fas fa-chevron-down"></i>
+          <img alt="Profile picture" id="pp" src="./assets/profile.png" />
+          </button>
+            <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded" id="profilDiv">
+              <a @click="isLoginScreenDisplayed =! isLoginScreenDisplayed" class="green block" href="#"> Login</a>
+              <a @click="isSignupScreenDisplayed =! isSignupScreenDisplayed" class="green block" href="#"> Sign up</a>
+            </div>
+      </div>
+        
         </div>
       </div>
-    </div>
+   
       <!-- Sidebar -->
     <div class="flex">
       <div class="bg-gray-900 p-5" id="sidebar">
@@ -94,10 +107,31 @@ const toggleDropdown = () => {
             <a style="border: 1px solid red; color: red; cursor: pointer;" @click="isLoginScreenDisplayed =! isLoginScreenDisplayed">X</a>
             </br>
             <div>
-              <form @submit.prevent="submitForm">
-                <input type="email" placeholder="Email Utilisateur" name="username" v-model="username">
-                <input type="password" placeholder="Mot de passe" name="password"  v-model="password">
+              <form @submit.prevent="submitFormLogin">
+                <input type="email" placeholder="Email Utilisateur" name="username" v-model="username" required>
+                <input type="password" placeholder="Mot de passe" name="password" v-model="password" required>
                 <button type="submit">Connexion</button>
+              </form>
+             
+           </div>
+          </div>
+          
+        </div>
+
+         <!--Login -->
+         <div v-if="isSignupScreenDisplayed" class="loginBox">
+          
+          <div class="loginContent">    
+           </br>
+          
+            <b style="padding-right: 20px;">Connexion</b>
+            <a style="border: 1px solid red; color: red; cursor: pointer;" @click="isSignupScreenDisplayed =! isSignupScreenDisplayed">X</a>
+            </br>
+            <div>
+              <form @submit.prevent="submitFormSignup">
+                <input type="email" placeholder="Email Utilisateur" name="username" v-model="username" required>
+                <input type="password" placeholder="Mot de passe" name="password" v-model="password" required>
+                <button type="submit">Créer un compte</button>
               </form>
              
            </div>
@@ -378,8 +412,149 @@ export default {
       currentWindow,
       setCurrentComponent,
       currentComponent,
-      toggleDropdown
+      toggleDropdown,
     };
-  }
+  },
+    beforeCreate() {
+    this.$store.commit('initializeStore')
+
+    const token = this.$store.state.token
+
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = "Token " + token
+     
+    } else {
+      axios.defaults.headers.common['Authorization'] = ''
+    }
+  },
+    created() {
+    // Récupérer le token d'authentification depuis le local storage ou votre store Vuex
+    const token = this.$store.state.token;
+    if (!token) {
+      console.error('Token d\'authentification non trouvé.');
+      return;
+    }
+
+    // Envoyer la requête pour récupérer les informations de l'utilisateur
+    axios.get('api/v1/users/me/', {
+      headers: {
+        'Authorization': `Token ${token}`
+      }
+    })
+    .then(response => {
+      // Enregistrer les informations de l'utilisateur dans la variable userData
+      console.log(response.data)
+    })
+    .catch(error => {
+      console.error('Erreur lors de la récupération des informations de l\'utilisateur :', error);
+    });
+  },
+  computed: {
+    isAuthenticated() {
+      return this.$store.state.isAuthenticated
+    },
+    name() {
+        return this.$store.state.username;
+      
+    }
+  },
+  methods: {
+    //Sign up
+    submitFormSignup(e) {
+            const formData = {
+                username: this.username,
+                password: this.password,
+                email: this.username,
+            }
+
+            axios
+                .post('/api/v1/users/', formData)
+                .then(response => {
+
+                    this.$router.push('/log-in')
+                    console.log(response)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
+    //Login
+        submitFormLogin(e) {
+            const formData = {
+                username: this.username,
+                password: this.password,
+            }
+            console.log(formData)
+            axios
+                .post('/api/v1/token/login', formData)
+                .then(response => {
+                    console.log(response)
+                 
+                    const token = response.data.auth_token
+                    const username = formData.username
+                
+                    this.$store.commit('setToken', token)
+                    localStorage.setItem('username', username);
+                    localStorage.setItem('token', token);
+                  
+                    this.$store.commit('setToken', { token, username });
+                    
+                    axios.defaults.headers.common['Authorization'] = "Token " + token
+                   
+                    localStorage.setItem("token", token)
+                    
+                    axios.get('api/v1/users/me/', {
+                       headers: {
+                        'Authorization': `Token ${token}`
+                        }
+                   })
+                        .then(userResponse => {
+                            // Traiter les informations de l'utilisateur ici
+                            console.log(userResponse.data);
+                         
+                            // Rediriger vers la page principale ou une autre page après la connexion
+                            this.$router.push("/");
+                        })
+                        .catch(userError => {
+                            console.error('Erreur lors de la récupération des informations de l\'utilisateur :', userError);
+                        });
+                      })
+                
+                .catch(error => {
+                    console.log(error)
+                })
+          
+        },
+        //Logout
+        logout() {
+        const token = this.$store.state.token;
+
+        if (token) {
+          console.log(token);
+          axios.post('/api/v1/token/logout', token, {
+              headers: {
+                'Authorization': `Token ${token}`
+              }
+            })
+            .then(response => {
+              console.log(response);
+              // Gérer la réponse de la déconnexion si nécessaire
+              // Supprimer le token du local storage
+              localStorage.removeItem('token');
+              // Réinitialiser le state de l'utilisateur dans le store Vuex
+              this.$store.commit('removeToken');
+              // Rediriger l'utilisateur vers la page de connexion ou une autre page si nécessaire
+              this.$router.push('/'); // Redirection vers la page de connexion
+            })
+            .catch(error => {
+              console.error(error);
+              // Gérer les erreurs de déconnexion si nécessaire
+            });
+        } else {
+          console.error('Token not found in local storage.');
+          // Gérer le cas où le token n'est pas trouvé dans le stockage local
+        }
+      }
+    }
 };
 </script>
