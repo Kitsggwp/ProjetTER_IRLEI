@@ -12,12 +12,7 @@ const currentWindow = ref('Epoque');
 //Loging in
 const isConnected = ref(false);
 const isLoginScreenDisplayed = ref(false);
-const displayLogin = () => {
-  isLoginScreenDisplayed.value = true;
-};
-const HideLogin = () => {
-  isLoginScreenDisplayed.value = false;
-};
+
 
 
 
@@ -50,7 +45,7 @@ const toggleDropdown = () => {
           </button>
           <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded" id="profilDiv">
             <a class="green block" href="#">Profile</a>
-            <a @click="displayLogin" class="green block" href="#">Login</a>
+            <a @click="isLoginScreenDisplayed =! isLoginScreenDisplayed" class="green block" href="#">Login</a>
           </div>
         </div>
       </div>
@@ -94,9 +89,9 @@ const toggleDropdown = () => {
           
           <div class="loginContent">    
            </br>
-            <span class="close" @click="HideLogin"></span>
+          
             <b style="padding-right: 20px;">Connexion</b>
-            <a style="border: 1px solid red; color: red; cursor: pointer;" @click="HideLogin">X</a>
+            <a style="border: 1px solid red; color: red; cursor: pointer;" @click="isLoginScreenDisplayed =! isLoginScreenDisplayed">X</a>
             </br>
             <div>
               <form @submit.prevent="submitForm">
