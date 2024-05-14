@@ -1,0 +1,4 @@
+On newer python version, an error appear when getting depedencies with requirements.txt involving "distutils"
+-> It can be corrected by installing "setuptools" -> pip install setuptools
+Same for "pkgutil"
+->The Numpy package is too old -> 1.24.2 // 1.26.4
