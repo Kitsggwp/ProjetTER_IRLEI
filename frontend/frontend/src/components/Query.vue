@@ -75,6 +75,7 @@ const toggleMeasureDropdown = () => {
     <div id="graph">
       <img alt="Line graph showing system performance over time with multiple lines for different systems"
         height="400" src="../assets/graphique2.png" width="600" />
+        <iframe style="border: 1px solid rgba(0, 0, 0, 0.1);" width="800" height="450" src="https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2Fdesign%2F2yyD2VY6aAer33Ns7pWHfd%2FIMH-copilote%3Fm%3Ddev%26node-id%3D38%253A37" allowfullscreen></iframe>
     </div>
   </div>
 </template>

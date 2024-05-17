@@ -4,6 +4,8 @@ import { ref } from 'vue';
 import Epoque from './components/Epoque.vue';
 import Query from './components/Query.vue';
 import System from './components/System.vue';
+import Profil from './components/Profil.vue';
+import Manage from './components/Manage.vue';
 import axios from 'axios'
 const searchTerm = ref('');
 const isDropdownOpen = ref(false);
@@ -32,7 +34,7 @@ const toggleDropdown = () => {
 
     <div class="bg-gray-900 headBar flex justify-between items-center">
       <h1 id="title">Interface recherche</h1>
-      <div>
+      <div class="flex">
         <input v-model="searchTerm" class="bg-gray-700 p-2 rounded" placeholder="Chercher un système" type="text" id="searchBar"/>
   
         <div v-if="isAuthenticated" class="inline-block relative">
@@ -81,9 +83,13 @@ const toggleDropdown = () => {
             <img src="./assets/system.svg" id="sbLogo"></img>
             <span>Systèmes</span>
           </a>
-          <a class="flex items-center text-gray-300 hover:text-white" href="#">
+          <a @click="setCurrentComponent('Manage')"class="flex items-center text-gray-300 hover:text-white" href="#">
             <img src="./assets/settings.svg" id="sbLogo"></img>
             <span>Settings</span>
+          </a>
+          <a class="flex items-center text-gray-300 hover:text-white" href="#">
+            <img src="./assets/settings.svg" id="sbLogo"></img>
+            <span>Accessibility</span>
           </a>
           
         </div>
@@ -216,7 +222,13 @@ select{
   padding: 0.5rem;
 }
 
-#profilDiv > a:hover, .green {
+#profilDiv > a:hover {
+  color: white;
+  background-color: rgba(20, 255, 177, 0.511);
+  transition: 0.4s;  
+}
+
+a:hover {
   color: white;
   background-color: rgba(20, 255, 177, 0.511);
   transition: 0.4s;  
@@ -252,6 +264,12 @@ select{
   background-color: #1E2836;
   width: 100%;
 }
+#console{
+  background-color: #0a0d11;
+  color:white;
+  font-family: system-ui;
+  min-height: 300px;
+}
 #profileButton{
 color: white;
 height: 2.5rem;
@@ -283,8 +301,9 @@ height: 2.5rem;
   padding:0px;
 }
 
-
-
+.bg-gray-600 {
+  background-color: #4a5361;
+}
 .bg-gray-700 {
   background-color: #343D4D;
 }
@@ -402,7 +421,9 @@ export default {
   components: {
     Epoque,
     Query,
-    System
+    System,
+    Profil,
+    Manage
   },
   setup() {
     return {
