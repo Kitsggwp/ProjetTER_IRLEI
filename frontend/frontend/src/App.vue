@@ -11,7 +11,7 @@ const searchTerm = ref('');
 const isDropdownOpen = ref(false);
 const currentWindow = ref('Epoque');
 const isLoginScreenDisplayed = ref(false);
-const isSignupScreenDisplayed = ref(false);
+
 
 
 
@@ -114,7 +114,7 @@ const toggleDropdown = () => {
             </br>
             <div>
               <form @submit.prevent="submitFormLogin">
-                <input type="email" placeholder="Email Utilisateur" name="username" v-model="username" required>
+                <input type="text" placeholder="Username" name="username" v-model="username" required>
                 <input type="password" placeholder="Mot de passe" name="password" v-model="password" required>
                 <button type="submit">Connexion</button>
               </form>
@@ -122,26 +122,6 @@ const toggleDropdown = () => {
            </div>
           </div>
           
-        </div>
-
-         <!--Login -->
-         <div v-if="isSignupScreenDisplayed" class="loginBox">
-          
-          <div class="loginContent">    
-           </br>
-          
-            <b style="padding-right: 20px;">Connexion</b>
-            <a style="border: 1px solid red; color: red; cursor: pointer;" @click="isSignupScreenDisplayed =! isSignupScreenDisplayed">X</a>
-            </br>
-            <div>
-              <form @submit.prevent="submitFormSignup">
-                <input type="email" placeholder="Email Utilisateur" name="username" v-model="username" required>
-                <input type="password" placeholder="Mot de passe" name="password" v-model="password" required>
-                <button type="submit">Créer un compte</button>
-              </form>
-             
-           </div>
-          </div>
           
         </div>
       </div>
@@ -435,6 +415,15 @@ export default {
       currentComponent,
       toggleDropdown,
     };
+  
+  },
+  data() {
+    return {
+      teams: [], // Pour stocker la liste des équipes récupérées depuis l'API
+      evals: [], // stocker toutes les evals
+      user:'', //stocker les infos sur l'user connecté
+      uniqueSystems:'', // liste evals avec nom des systems uniques
+    }
   },
     beforeCreate() {
     this.$store.commit('initializeStore')
@@ -453,22 +442,16 @@ export default {
     const token = this.$store.state.token;
     if (!token) {
       console.error('Token d\'authentification non trouvé.');
-      return;
+    } else {
+      // Si on est connecté on récupère les infos des tables Teams, evals et les infos du user connecté
+      this.getEval()
+
+      this.getTeam()
+
+      this.getUser()
     }
 
-    // Envoyer la requête pour récupérer les informations de l'utilisateur
-    axios.get('api/v1/users/me/', {
-      headers: {
-        'Authorization': `Token ${token}`
-      }
-    })
-    .then(response => {
-      // Enregistrer les informations de l'utilisateur dans la variable userData
-      console.log(response.data)
-    })
-    .catch(error => {
-      console.error('Erreur lors de la récupération des informations de l\'utilisateur :', error);
-    });
+    
   },
   computed: {
     isAuthenticated() {
@@ -524,21 +507,14 @@ export default {
                    
                     localStorage.setItem("token", token)
                     
-                    axios.get('api/v1/users/me/', {
-                       headers: {
-                        'Authorization': `Token ${token}`
-                        }
-                   })
-                        .then(userResponse => {
-                            // Traiter les informations de l'utilisateur ici
-                            console.log(userResponse.data);
-                         
-                            // Rediriger vers la page principale ou une autre page après la connexion
-                            this.$router.push("/");
-                        })
-                        .catch(userError => {
-                            console.error('Erreur lors de la récupération des informations de l\'utilisateur :', userError);
-                        });
+                    // Récupère les infos du user connecté et les mets dans la variables user
+                    this.getUser();
+
+                    // Récupère les infos de la table Eval et les mets dans la variables evals
+                    this.getEval();
+
+                    // Récupère les infos de la table Team et les mets dans la variables teams
+                    this.getTeam();
                       })
                 
                 .catch(error => {
@@ -575,7 +551,63 @@ export default {
           console.error('Token not found in local storage.');
           // Gérer le cas où le token n'est pas trouvé dans le stockage local
         }
-      }
+      },
+
+       // récupère les données du user connecté et les met dans la variable user
+      getUser()  {
+        axios.get('api/user/', {
+                       headers: {
+                        'Authorization': `Token ${this.$store.state.token}`
+                        }
+                   })
+                        .then(userResponse => {
+                            // Traiter les informations de l'utilisateur ici
+                            this.user = userResponse.data
+                            console.log(userResponse.data);
+                         
+                        })
+                        .catch(userError => {
+                            console.error('Erreur lors de la récupération des informations de l\'utilisateur :', userError);
+                        });
+                      },             
+       // récupère les données de la table team et les met dans la variable teams
+      getTeam() {
+        axios.get('api/team/', {
+                        headers: {
+                          'Authorization': `Token ${this.$store.state.token}`
+                         }
+                      })
+                      .then(response => {
+                        this.teams = response.data
+                        console.log(response.data);
+                      })
+                       .catch(error => {
+                         console.error(error);
+                      });
+                    },                
+
+      // récupère les données de la table eval et les met dans la variable evals, met tous les system_id différents dans la variable uniqueSystems
+      getEval() {
+        console.log("get eval")
+        axios.get('api/eval/', {
+                        headers: {
+                          'Authorization': `Token ${this.$store.state.token}`
+                         }
+                      })
+                      .then(response => {
+                       // console.log(response.data);
+                        this.evals = response.data
+                        
+                        const uniqueSystems = [...new Set(response.data.map(ev => ev.System_id))];
+                        this.uniqueSystems = uniqueSystems;
+                      //  console.log(response.data)
+                        console.log(uniqueSystems)
+                      })
+                       .catch(error => {
+                         console.error(error);
+                      });
+                    
+      },
     }
 };
 </script>
