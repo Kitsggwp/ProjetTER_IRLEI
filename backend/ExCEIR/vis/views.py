@@ -6,6 +6,8 @@ from rest_framework.parsers import JSONParser
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.views import APIView
 from vis.models import Query
+from django.shortcuts import get_object_or_404
+from django.http import JsonResponse
 import os
 from django.conf import settings # STATIC_ROOT
 from rest_framework.response import Response
@@ -37,6 +39,9 @@ import json
 
 User = get_user_model()
 
+
+
+
 class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = CustomUserCreateSerializer
@@ -54,11 +59,18 @@ class CustomUserCreateView(UserViewSet):
         User.objects.filter(id__in=user_ids).delete()
         return Response({"message": "Users deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
+    @action(detail=True, methods=['put'], url_path='update')
+    def update_user(self, request, pk=None):
+        user = get_object_or_404(CustomUser, pk=pk)
+        serializer = self.serializer_class(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class EvalViewSet(viewsets.ModelViewSet):
     queryset = Eval.objects.all()
     serializer_class = EvalSerializer
-
-
 
     def create(self, request):
         data = request.data  # Données envoyées depuis le frontend

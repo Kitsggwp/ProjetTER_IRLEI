@@ -10,6 +10,7 @@ router.register('user', views.CustomUserCreateView, basename='user')
 
 urlpatterns = [
     # path('', views.index, name='index'),
+
     path('api/users/', views.UserListView.as_view(), name='user-list'),
     path('api/', include(router.urls)),
     path('api/v1/', include('djoser.urls')),

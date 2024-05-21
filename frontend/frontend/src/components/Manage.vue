@@ -3,12 +3,19 @@ import { ref } from 'vue';
 import axios from 'axios'
 const displayAccountCreation = ref(false);
 const displayAccountDelete = ref(false);
+const displayAccount = ref(false);
 const displayFileInput = ref(false);
 const displayFileDelete = ref(false);
+const displayFile = ref(false);
+const displayUserEditForm = ref(false);
+const displayTeam = ref(false);
+const displayTeamInput = ref(false);
+const displayTeamDelete = ref(false);
 
 </script>
 
 <template>
+
   <div class="bg-gray-700 p-5 rounded-lg">
     Gestion des utilisateurs
     <div class="bg-gray-800">
@@ -16,15 +23,18 @@ const displayFileDelete = ref(false);
       <div class="bg-gray-600">
         <button @click="displayAccountCreation = !displayAccountCreation" class="cursor-pointer">Créer un
           utilisateur</button>
-        <button class="cursor-pointer">Modifier un utilisateur</button>
+        <button @click="displayUserEditForm = !displayUserEditForm" class="cursor-pointer">Modifier un
+          utilisateur</button>
         <button @click="displayAccountDelete = !displayAccountDelete" class="cursor-pointer">Supprimer un
           utilisateur</button>
+        <button @click="displayAccount = !displayAccount" class="cursor-pointer">Visualiser les
+          utilisateurs</button>
       </div>
       <div v-if="displayAccountCreation">
         <form @submit.prevent="submitFormRegister">
           <input type="text" placeholder="Nom d'utilisateur" v-model="username">
           <input type="text" placeholder="Mot de passe" v-model="password">
-          <select v-model="selectedTeam" required>
+          <select v-model="selectedUserTeam" required>
             <option disabled value="">Sélectionnez une équipe</option>
             <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
           </select>
@@ -32,15 +42,49 @@ const displayFileDelete = ref(false);
         </form>
       </div>
 
-      <!-- marche pas pour le moment -->
+      <div v-if="displayUserEditForm">
+        <form @submit.prevent="updateUser">
+          <select v-model="editedUser.id" required>
+            <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
+          </select>
+
+          <input type="text" placeholder=" Modifier username" v-model="editedUser.username" required>
+          <input type="password" placeholder="Modifier password" v-model="editedUser.password" required>
+
+          <label for="team">Team :</label>
+          <select id="team" v-model="editedUser.team" required>
+            <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
+          </select>
+
+          <button type="submit">Enregistrer</button>
+        </form>
+      </div>
+
       <div v-if="displayAccountDelete">
         <form @submit.prevent="deleteUserById">
           <select v-model="selectedUser" required>
             <option disabled value="">Sélectionnez un utilisateur</option>
-            <option v-for="user in user" :key="user.id" :value="user.id">{{ user.username }}</option>
+            <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
           </select>
           <button class="cursor-pointer" type="submit">Supprimer</button>
         </form>
+      </div>
+
+      <div v-if="displayAccount">
+        <table>
+          <thead>
+            <tr>
+              <th>Username</th>
+              <th>Team</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(user, index) in users" :key="index">
+              <td>{{ user.username }}</td>
+              <td>{{ user.team }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
     </div>
@@ -50,8 +94,9 @@ const displayFileDelete = ref(false);
       <div class="bg-gray-600">
         <button @click="displayFileInput = !displayFileInput" class="cursor-pointer">Ajouter des fichiers
           d'évaluations</button>
-        <button class="cursor-pointer" @click="displayFileDelete = !displayFileDelete"> Retirer un système de la base de
-          données</button>
+        <button class="cursor-pointer" @click="displayFileDelete = !displayFileDelete"> Retirer un système </button>
+        <button class="cursor-pointer" @click="displayFile = !displayFile"> Visualiser les systèmes
+        </button>
       </div>
       <div v-if="displayFileInput">
         <form @submit.prevent="submitFormAddEval">
@@ -68,7 +113,7 @@ const displayFileDelete = ref(false);
         <br />
         Log :
         <div class="bg-gray-800" id="console">
-
+          {{ consoleaddsystemMessage }}
         </div>
       </div>
 
@@ -84,11 +129,84 @@ const displayFileDelete = ref(false);
         <br />
         Log :
         <div class="bg-gray-800" id="console">
-
+          {{ consoledeletesystemMessage }}
         </div>
+      </div>
+
+      <div v-if="displayFile">
+        <table>
+          <thead>
+            <tr>
+              <th>System_id</th>
+              <th>Team</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(system, index) in uniqueSystems" :key="index">
+              <td>{{ system.System_id }}</td>
+              <td>{{ system.Team }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    Gestion des teams
+    <div class="bg-gray-800">
+
+      <div class="bg-gray-600">
+        <button @click="displayTeamInput = !displayTeamInput" class="cursor-pointer">Ajouter une team</button>
+        <button class="cursor-pointer" @click="displayTeamDelete = !displayTeamDelete"> Retirer une team </button>
+        <button class="cursor-pointer" @click="displayTeam = !displayTeam"> Visualiser les teams
+        </button>
+      </div>
+      <div v-if="displayTeamInput">
+        <form @submit.prevent="addTeam">
+          <input type="text" placeholder="Name" v-model="teamname">
+          <button class="cursor-pointer" type="submit">Créer</button>
+        </form>
+        <!--Console-->
+        <br />
+        Log :
+        <div class="bg-gray-800" id="console">
+          {{ consoleaddsystemMessage }}
+        </div>
+      </div>
+
+      <div v-if="displayTeamDelete">
+        <form @submit.prevent="deleteTeamById">
+          <select v-model="team" required>
+            <option disabled value="">Sélectionnez une team</option>
+            <option v-for="team in teams" :key="team.name" :value="team.name">{{ team.name }}</option>
+          </select>
+          <button class="cursor-pointer" type="submit">Supprimer</button>
+        </form>
+        <!--Console-->
+        <br />
+        Log :
+        <div class="bg-gray-800" id="console">
+          {{ consoledeletesystemMessage }}
+        </div>
+      </div>
+
+      <div v-if="displayTeam">
+        <table>
+          <thead>
+            <tr>
+              <th>Team</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(team, index) in teams" :key="index">
+              <td>{{ team.name }}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
+
+
 
 </template>
 
@@ -98,14 +216,26 @@ import { ref } from 'vue';
 export default {
   data() {
     return {
-      selectedTeam: '', // Pour stocker l'ID de l'équipe sélectionnée
+      selectedUserTeam: '', // Pour stocker l'ID de l'équipe sélectionnée lors de la création d'un user
+      selectedTeam: '', // Pour stocker l'ID de l'équipe sélectionnée lors de la création des evals
+      team: '', // Pour stocker l'ID de l'équipe sélectionnée lors de la suppression d'une team
       teams: [], // Pour stocker la liste des équipes récupérées depuis l'API
       evals: [], // stocker toutes les evals
       selectedSystem: '', // Pour stocker le système sélectionné dans la liste déroulante
       selectedUser: '', //Pour stocker le user sélectionné dans la liste déroulante
-      uniqueSystems: '', // liste evals avec nom des systems uniques
-      user: '', //stocker les infos sur les users
-      allNewEvals: []
+      uniqueSystems: [], // liste evals avec nom des systems uniques
+      users: '', //stocker les infos sur les users
+      allNewEvals: [],
+      //message dans les div consoles
+      consoleaddsystemMessage: '',
+      consoledeletesystemMessage: '',
+      editedUser: {
+        id: '',
+        username: '',
+        password: '',
+        team: ''
+      },
+      teamname: '',
     };
   },
   created() {
@@ -114,8 +244,8 @@ export default {
     if (!token) {
       console.error('Token d\'authentification non trouvé.');
     } else {
-      // récupérer les infos utilisateurs (group, username...)
-      this.getUser()
+      // récupérer la liste des users de la bdd
+      this.getUsers()
 
       // récupérer les evals
       this.getEval()
@@ -133,7 +263,7 @@ export default {
       const formData = {
         username: this.username,
         password: this.password,
-        team: this.selectedTeam
+        team: this.selectedUserTeam
       }
       console.log(formData)
       axios
@@ -142,13 +272,14 @@ export default {
 
           this.$router.push('/')
           console.log(response)
+          this.getUsers()
         })
         .catch(error => {
           console.log(error)
         })
     },
 
-    getUser() {
+    getUsers() {
       axios.get('api/users/', {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`
@@ -156,7 +287,7 @@ export default {
       })
         .then(userResponse => {
           // Traiter les informations de l'utilisateur ici
-          this.user = userResponse.data
+          this.users = userResponse.data
           console.log(userResponse.data);
 
         })
@@ -177,7 +308,7 @@ export default {
       })
         .then(response => {
           //console.log(response.data.message);
-          this.getUser()
+          this.getUsers()
           // Mettez à jour votre interface utilisateur si nécessaire
         })
         .catch(error => {
@@ -187,6 +318,27 @@ export default {
 
 
     },
+
+    updateUser() {
+
+      axios.put(`api/user/${this.editedUser.id}/`, {
+        username: this.editedUser.username,
+        password: this.editedUser.password,
+        team: this.editedUser.team,
+      }, {
+        headers: {
+          'Authorization': `Token ${this.$store.state.token}`,
+        }
+      }).then(response => {
+        console.log(response.data);
+        this.getUsers()
+        // Traitez la réponse ici, mettez à jour l'interface utilisateur si nécessaire
+      }).catch(error => {
+        console.error(error);
+      });
+    },
+
+
     //CRUD Team
     getTeam() {
       axios.get('api/team/', {
@@ -203,6 +355,43 @@ export default {
         });
     },
 
+    addTeam() {
+      console.log(this.teamname)
+      axios.post('api/team/', { name: this.teamname }, {
+        headers: {
+          'Authorization': `Token ${this.$store.state.token}`
+        }
+      })
+
+        .then(response => {
+
+          this.consoleaddsystemMessage = "Opération réussie"
+          this.getTeam()
+
+
+        })
+        .catch(error => {
+          this.consoleaddsystemMessage = "Erreur : " + error;
+        });
+
+    },
+
+
+
+    deleteTeamById() {
+      console.log(this.team)
+      axios.delete(`/api/team/${this.team}/`, {
+        headers: {
+          'Authorization': `Token ${this.$store.state.token}`,
+        }
+      }).then(response => {
+        this.getTeam(); // Refresh the team list after deletion
+      }).catch(error => {
+        console.error(error);
+      });
+    },
+
+
     // CRUD EVAL
     getEval() {
       console.log("get eval")
@@ -215,16 +404,21 @@ export default {
           // console.log(response.data);
           this.evals = response.data
 
-          const uniqueSystems = [...new Set(response.data.map(ev => ev.System_id))];
+          const uniqueSystems = Array.from(
+            new Map(response.data.map(item => [item.System_id, { System_id: item.System_id, Team: item.Team }])).values()
+          );
+
           this.uniqueSystems = uniqueSystems;
           //  console.log(response.data)
-          console.log(uniqueSystems)
+          console.log(this.uniqueSystems)
         })
         .catch(error => {
           console.error(error);
         });
 
     },
+
+
 
     addEval(newEval) {
       console.log(newEval)
@@ -236,13 +430,13 @@ export default {
 
         .then(response => {
 
-          console.log("normalement ca marche");
+          this.consoleaddsystemMessage = "Opération réussie : " + response.data.message;
           this.getEval()
 
 
         })
         .catch(error => {
-          console.error(error);
+          this.consoleaddsystemMessage = "Erreur : " + error;
         });
 
     },
@@ -251,7 +445,7 @@ export default {
       console.log(this.selectedSystem)
       let AllEvalsDelete = [];
       this.evals.forEach(element => {
-        if (element.System_id === this.selectedSystem) {
+        if (element.System_id === this.selectedSystem.System_id) {
           AllEvalsDelete.push(element.id)
         }
       });
@@ -265,12 +459,14 @@ export default {
         }
       })
         .then(response => {
-          //console.log(response.data.message);
+          console.log(response);
+          this.consoledeletesystemMessage = "Opération réussie";
           this.getEval()
-          // Mettez à jour votre interface utilisateur si nécessaire
+
         })
         .catch(error => {
           console.error(error);
+          this.consoledeletesystemMessage = "Erreur : " + error;
         });
 
 
@@ -340,3 +536,18 @@ export default {
 
 };
 </script>
+<style>
+table th {
+  color: black;
+  /* Changer la couleur du texte en noir */
+}
+
+table td {
+  color: white;
+  /* Changer la couleur du texte en noir */
+}
+
+option {
+  color: black
+}
+</style>
