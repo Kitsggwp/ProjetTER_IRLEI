@@ -9,16 +9,18 @@ from vis.models import Query
 import os
 from django.conf import settings # STATIC_ROOT
 from rest_framework.response import Response
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework import viewsets, status
 from .models import Eval
 from .models import Team
+from .models import CustomUser
 from .serializers import EvalSerializer
 from djoser.views import UserViewSet
 from .serializers import CustomUserCreateSerializer
 from .serializers import TeamSerializer
-from rest_framework.permissions import AllowAny
-
+from django.contrib.auth import get_user_model
+from rest_framework import generics, permissions
+from rest_framework.authentication import BasicAuthentication
 
 import pandas as pd
 import numpy as np
@@ -33,15 +35,30 @@ from statsmodels.stats.meta_analysis import (
 )
 import json
 
+User = get_user_model()
 
-
+class UserListView(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = CustomUserCreateSerializer
 
 class CustomUserCreateView(UserViewSet):
+    queryset = CustomUser.objects.all()
     serializer_class = CustomUserCreateSerializer
+
+    @action(detail=False, methods=['delete'], url_path='bulk-delete')
+    def bulk_delete(self, request):
+        user_ids = request.data.get('ids', [])
+        if not user_ids:
+            return Response({"error": "No IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        User.objects.filter(id__in=user_ids).delete()
+        return Response({"message": "Users deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
 class EvalViewSet(viewsets.ModelViewSet):
     queryset = Eval.objects.all()
     serializer_class = EvalSerializer
+
+
 
     def create(self, request):
         data = request.data  # Données envoyées depuis le frontend
