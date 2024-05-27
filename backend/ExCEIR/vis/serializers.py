@@ -4,12 +4,14 @@ from .models import CustomUser
 from .models import Team
 from djoser.serializers import UserCreateSerializer 
 
+
 class CustomUserCreateSerializer(UserCreateSerializer):
     team = serializers.CharField(max_length=100)
+    info = serializers.CharField(max_length=100)
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'password', 'team']
+        fields = ['id', 'username', 'password', 'team', 'is_superuser', 'info']
         extra_kwargs = {'password': {'write_only': True}}
 
     def update(self, instance, validated_data):
@@ -20,10 +22,12 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         instance.save()
         return instance
 
+
 class EvalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Eval
         fields = '__all__'
+
 
 class TeamSerializer(serializers.ModelSerializer):
     class Meta:
