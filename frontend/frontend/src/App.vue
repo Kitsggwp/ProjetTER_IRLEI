@@ -11,10 +11,7 @@ const searchTerm = ref('');
 const isDropdownOpen = ref(false);
 const currentWindow = ref('Epoque');
 const isLoginScreenDisplayed = ref(false);
-
-
-
-
+const isSignupScreenDisplayed = ref(false);
 
 const currentComponent = ref('Epoque'); // Par défaut : affiche Epoque
 const setCurrentComponent = (componentName) => {
@@ -180,6 +177,10 @@ select{
   height: 30%;
   left: 40%;
   top: 40%;
+}
+option{
+  background-color: #1E2836;
+  color: white;
 }
 
 .loginContent{
