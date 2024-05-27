@@ -34,6 +34,7 @@ const displayTeamDelete = ref(false);
         <form @submit.prevent="submitFormRegister">
           <input type="text" placeholder="Nom d'utilisateur" v-model="username">
           <input type="text" placeholder="Mot de passe" v-model="password">
+          <input type="text" placeholder="Description" v-model="userinfo">
           <select v-model="selectedUserTeam" required>
             <option disabled value="">Sélectionnez une équipe</option>
             <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
@@ -44,12 +45,14 @@ const displayTeamDelete = ref(false);
 
       <div v-if="displayUserEditForm">
         <form @submit.prevent="updateUser">
-          <select v-model="editedUser.id" required>
+          <label for="useredit">User à modifier</label>
+          <select id="useredit" v-model="editedUser.id" required>
             <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
           </select>
 
           <input type="text" placeholder=" Modifier username" v-model="editedUser.username" required>
           <input type="password" placeholder="Modifier password" v-model="editedUser.password" required>
+          <input type="text" placeholder=" Modifier description" v-model="editedUser.info" required>
 
           <label for="team">Team :</label>
           <select id="team" v-model="editedUser.team" required>
@@ -76,12 +79,14 @@ const displayTeamDelete = ref(false);
             <tr>
               <th>Username</th>
               <th>Team</th>
+              <th>Description</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(user, index) in users" :key="index">
               <td>{{ user.username }}</td>
               <td>{{ user.team }}</td>
+              <td>{{ user.info }}</td>
             </tr>
           </tbody>
         </table>
@@ -163,6 +168,7 @@ const displayTeamDelete = ref(false);
       <div v-if="displayTeamInput">
         <form @submit.prevent="addTeam">
           <input type="text" placeholder="Name" v-model="teamname">
+          <input type="text" placeholder="Info" v-model="teaminfo">
           <button class="cursor-pointer" type="submit">Créer</button>
         </form>
         <!--Console-->
@@ -194,11 +200,13 @@ const displayTeamDelete = ref(false);
           <thead>
             <tr>
               <th>Team</th>
+              <th>Info</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(team, index) in teams" :key="index">
               <td>{{ team.name }}</td>
+              <td>{{ team.info }}</td>
             </tr>
           </tbody>
         </table>
@@ -263,7 +271,8 @@ export default {
       const formData = {
         username: this.username,
         password: this.password,
-        team: this.selectedUserTeam
+        team: this.selectedUserTeam,
+        info: this.userinfo
       }
       console.log(formData)
       axios
@@ -320,11 +329,12 @@ export default {
     },
 
     updateUser() {
-
+      console.log(this.editedUser.info)
       axios.put(`api/user/${this.editedUser.id}/`, {
         username: this.editedUser.username,
         password: this.editedUser.password,
         team: this.editedUser.team,
+        info: this.editedUser.info
       }, {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`,
@@ -357,7 +367,7 @@ export default {
 
     addTeam() {
       console.log(this.teamname)
-      axios.post('api/team/', { name: this.teamname }, {
+      axios.post('api/team/', { name: this.teamname, info: this.teaminfo }, {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`
         }

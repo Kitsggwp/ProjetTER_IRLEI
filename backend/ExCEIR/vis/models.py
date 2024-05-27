@@ -17,6 +17,7 @@ class Query(models.Model):
 
 class Team(models.Model):
     name = models.CharField(max_length=100, primary_key=True)
+    info = models.CharField(max_length=100, default="null")
 
     def __str__(self):
         return str(self.name)
@@ -24,6 +25,7 @@ class Team(models.Model):
 
 class CustomUser(AbstractUser):
     team = models.CharField(max_length=100)
+    info = models.CharField(max_length=100, default="null")
 
     def __str__(self):
         return self.username
@@ -37,7 +39,6 @@ class Eval(models.Model):
     Metric = models.CharField(max_length=100, default="null")
     Value = models.CharField(max_length=100, default="null")
     Team = models.ForeignKey(Team, on_delete=models.CASCADE, to_field='name')  # Utilise le champ 'name' comme clé étrangère
-    
 
     def __str__(self):
         return str(self.System_id)
