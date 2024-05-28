@@ -30,11 +30,12 @@ const displayTeamDelete = ref(false);
         <button @click="displayAccount = !displayAccount" class="cursor-pointer">Visualiser les
           utilisateurs</button>
       </div>
+    <Transition>
       <div v-if="displayAccountCreation">
         <form @submit.prevent="submitFormRegister">
-          <input type="text" placeholder="Nom d'utilisateur" v-model="username">
-          <input type="text" placeholder="Mot de passe" v-model="password">
-          <input type="text" placeholder="Description" v-model="userinfo">
+          <input type="text" placeholder="Nom d'utilisateur" v-model="username"><br/>
+          <input type="text" placeholder="Mot de passe" v-model="password"><br/>
+          <input type="text" placeholder="Description" v-model="userinfo"><br/>
           <select v-model="selectedUserTeam" required>
             <option disabled value="">Sélectionnez une équipe</option>
             <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
@@ -42,6 +43,7 @@ const displayTeamDelete = ref(false);
           <button class="cursor-pointer" type="submit">Créer</button>
         </form>
       </div>
+    </Transition>
 
       <div v-if="displayUserEditForm">
         <form @submit.prevent="updateUser">
@@ -559,5 +561,15 @@ table td {
 
 option {
   color: black
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.3s ease-out;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>
