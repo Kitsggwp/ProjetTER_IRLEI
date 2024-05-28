@@ -81,8 +81,8 @@ const toggleDropdown = () => {
           <img src="./assets/system.svg" id="sbLogo"></img>
           <span>Systèmes</span>
         </a>
-        <a v-if="user.length > 1" @click="setCurrentComponent('Manage')"
-          class="flex items-center text-gray-300 hover:text-white" href="#">
+        <a  @click="setCurrentComponent('Manage')" 
+          class="flex items-center text-gray-300 hover:text-white" href="#"> <!--v-if="user.length > 1"-->
           <img src="./assets/settings.svg" id="sbLogo"></img>
           <span>Settings</span>
         </a>
@@ -100,7 +100,9 @@ const toggleDropdown = () => {
     <!-- Main content -->
     <div class="flex-1 p-10" id="main">
       <!-- Fenêtre qui change -->
-      <component :is="currentComponent"></component>
+      <Transition name="fade" mode="out-in">
+        <component :is="currentComponent"></component>
+      </Transition>
 
       <!--Login -->
       <div v-if="isLoginScreenDisplayed" class="loginBox">
@@ -202,6 +204,14 @@ option{
   padding: 1.5rem;
 }
 
+.gridContainer {
+  
+  display: grid;
+  grid-template-columns: repeat(3, minmax(150px, 1fr)); /* Adjust the minmax value to fit your needs */
+  padding: 10px;
+ 
+}
+
 #profilDiv>a,
 .green {
   text-decoration: none;
@@ -213,14 +223,14 @@ option{
 
 #profilDiv>a:hover {
   color: white;
-  background-color: rgba(20, 255, 177, 0.511);
+  background-color: rgba(33, 240, 171, 0.642);
   transition: 0.4s;
 }
 
 a:hover {
   color: white;
-  background-color: rgba(20, 255, 177, 0.511);
-  transition: 0.4s;
+  background-color: rgb(54, 179, 137);
+  transition: 0.3s;
 }
 
 #sidebar {
@@ -418,7 +428,15 @@ img {
 body {
   line-height: inherit;
 }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
 
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 
 /* Ajoutez le reste des classes ici */
 </style>
