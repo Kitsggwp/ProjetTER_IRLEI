@@ -1,17 +1,81 @@
 <script setup>
 import { ref } from 'vue';
 import axios from 'axios'
-const displayAccountCreation = ref(false);
-const displayAccountDelete = ref(false);
-const displayAccount = ref(false);
-const displayFileInput = ref(false);
-const displayFileDelete = ref(false);
-const displayFile = ref(false);
-const displayUserEditForm = ref(false);
-const displayTeam = ref(false);
-const displayTeamInput = ref(false);
-const displayTeamDelete = ref(false);
+let displayAccountCreation = ref(false);
+let displayAccountDelete = ref(false);
+let displayAccount = ref(false);
+let displayFileInput = ref(false);
+let displayFileDelete = ref(false);
+let displayFile = ref(false);
+let displayUserEditForm = ref(false);
+let displayTeam = ref(false);
+let displayTeamInput = ref(false);
+let displayTeamDelete = ref(false);
 
+const DisplayMethod = (section, event) => {
+  switch (section) {
+    case "user":
+      displayAccountCreation.value = false;
+      displayAccountDelete.value = false;
+      displayAccount.value = false;
+      displayUserEditForm.value = false;
+      switch (event) {
+        case "displayAccountCreation":
+          displayAccountCreation.value = true;
+          break;
+        case "displayAccountDelete":
+          displayAccountDelete.value = true;
+          break;
+        case "displayAccount":
+          displayAccount.value = true;
+          break;
+        case "displayUserEditForm":
+          displayUserEditForm.value = true;
+          break;
+        default:
+          break;
+      }
+      break;
+    case "system":
+      displayFileInput.value = false;
+      displayFileDelete.value = false;
+      displayFile.value = false;
+      switch (event) {
+        case "displayFileInput":
+          displayFileInput.value = true;
+          break;
+        case "displayFileDelete":
+          displayFileDelete.value = true;
+          break;
+        case "displayFile":
+          displayFile.value = true;
+          break;
+        default:
+          break;
+      }
+      break;
+    case "team":
+      displayTeam.value = false;
+      displayTeamInput.value = false;
+      displayTeamDelete.value = false;
+      switch (event) {
+        case "displayTeamInput":
+          displayTeamInput.value = true;
+          break;
+        case "displayTeamDelete":
+          displayTeamDelete.value = true;
+          break;
+        case "displayTeam":
+          displayTeam.value = true;
+          break;
+        default:
+          break;
+      }
+      break;
+    default:
+      break;
+  }
+};
 </script>
 
 <template>
@@ -21,21 +85,21 @@ const displayTeamDelete = ref(false);
     <div class="bg-gray-800">
 
       <div class="bg-gray-600">
-        <button @click="displayAccountCreation = !displayAccountCreation" class="cursor-pointer">Créer un
+        <button @click="DisplayMethod('user', 'displayAccountCreation')" class="cursor-pointer">Créer un
           utilisateur</button>
-        <button @click="displayUserEditForm = !displayUserEditForm" class="cursor-pointer">Modifier un
+        <button @click="DisplayMethod('user', 'displayUserEditForm')" class="cursor-pointer">Modifier un
           utilisateur</button>
-        <button @click="displayAccountDelete = !displayAccountDelete" class="cursor-pointer">Supprimer un
+        <button @click="DisplayMethod('user', 'displayAccountDelete')" class="cursor-pointer">Supprimer un
           utilisateur</button>
-        <button @click="displayAccount = !displayAccount" class="cursor-pointer">Visualiser les
+        <button @click="DisplayMethod('user', 'displayAccount')" class="cursor-pointer">Visualiser les
           utilisateurs</button>
       </div>
     <Transition>
       <div v-if="displayAccountCreation">
         <form @submit.prevent="submitFormRegister">
-          <input type="text" placeholder="Nom d'utilisateur" v-model="username"><br/>
-          <input type="text" placeholder="Mot de passe" v-model="password"><br/>
-          <input type="text" placeholder="Description" v-model="userinfo"><br/>
+          <input type="text" placeholder="Nom d'utilisateur" v-model="username" required>
+          <input type="text" placeholder="Mot de passe" v-model="password" required>
+          <input type="text" placeholder="Description" v-model="userinfo">
           <select v-model="selectedUserTeam" required>
             <option disabled value="">Sélectionnez une équipe</option>
             <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
@@ -99,15 +163,14 @@ const displayTeamDelete = ref(false);
     <div class="bg-gray-800">
 
       <div class="bg-gray-600">
-        <button @click="displayFileInput = !displayFileInput" class="cursor-pointer">Ajouter des fichiers
+        <button @click="DisplayMethod('system', 'displayFileInput')" class="cursor-pointer">Ajouter des fichiers
           d'évaluations</button>
-        <button class="cursor-pointer" @click="displayFileDelete = !displayFileDelete"> Retirer un système </button>
-        <button class="cursor-pointer" @click="displayFile = !displayFile"> Visualiser les systèmes
-        </button>
+        <button @click="DisplayMethod('system', 'displayFileDelete')" class="cursor-pointer">Retirer un système</button>
+        <button @click="DisplayMethod('system', 'displayFile')" class="cursor-pointer">Visualiser les systèmes</button>
       </div>
       <div v-if="displayFileInput">
         <form @submit.prevent="submitFormAddEval">
-          <input type="file" directory webkitdirectory>
+          <input type="file" directory webkitdirectory required>
           <br />
           <select v-model="selectedTeam" required>
             <option disabled value="">Sélectionnez une équipe</option>
@@ -162,10 +225,9 @@ const displayTeamDelete = ref(false);
     <div class="bg-gray-800">
 
       <div class="bg-gray-600">
-        <button @click="displayTeamInput = !displayTeamInput" class="cursor-pointer">Ajouter une team</button>
-        <button class="cursor-pointer" @click="displayTeamDelete = !displayTeamDelete"> Retirer une team </button>
-        <button class="cursor-pointer" @click="displayTeam = !displayTeam"> Visualiser les teams
-        </button>
+        <button @click="DisplayMethod('team', 'displayTeamInput')" class="cursor-pointer">Ajouter une team</button>
+        <button @click="DisplayMethod('team', 'displayTeamDelete')" class="cursor-pointer">Retirer une team</button>
+        <button @click="DisplayMethod('team', 'displayTeam')" class="cursor-pointer">Visualiser les teams</button>
       </div>
       <div v-if="displayTeamInput">
         <form @submit.prevent="addTeam">
@@ -434,6 +496,7 @@ export default {
 
     addEval(newEval) {
       console.log(newEval)
+      this.consoleaddsystemMessage = "Traitement en cours...";
       axios.post('api/eval/', newEval, {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`
@@ -455,6 +518,7 @@ export default {
 
     deleteEvalBySystem() {
       console.log(this.selectedSystem)
+      this.consoledeletesystemMessage = "Traitement en cours...";
       let AllEvalsDelete = [];
       this.evals.forEach(element => {
         if (element.System_id === this.selectedSystem.System_id) {
@@ -550,14 +614,20 @@ export default {
 </script>
 <style>
 table th {
-  color: black;
+  color: white;
+  font-weight: bold;
   /* Changer la couleur du texte en noir */
+}
+
+table tr {
+  color: white;
 }
 
 table td {
   color: white;
   /* Changer la couleur du texte en noir */
 }
+
 
 option {
   color: black
