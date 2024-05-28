@@ -12,8 +12,8 @@ export default {
       uniqueSystems: [],
       uniqueRound: [],
       uniqueMetric: [],
-      selectedMetric: 'desiredMetric',
-      selectedRound: 'desiredRound',
+      selectedMetric: 'not choosed',
+      selectedRound: 'not choosed',
       x: null,
       y: null,
       xAxis: null,
@@ -217,6 +217,7 @@ export default {
         <button @click="toggleEpochDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
           <i class="fas fa-calendar-alt mr-2"></i>
           <span>Époques</span>
+          <span class="selected green">: {{ selectedRound }}</span>
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
         <!--   <select @click="selectRound(selected)" v-model="selected">
@@ -225,31 +226,29 @@ export default {
           </option>
         </select>
         <span>value : </span> -->
-        <div v-if="isEpochDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
+        <Transition>
+        <div v-if="isEpochDropdownOpen" class="absolute gridContainer" style="grid-template-columns: repeat(3, minmax(30px, 1fr));">
 
           <a v-for="ev in uniqueRound" :key="ev" :value="ev" @click="selectRound(ev)"
             class=" green block px-4 py-2 hover:bg-gray-600">{{ ev }}</a>
-
-
         </div>
+      </Transition>
       </div>
       <div class="relative inline-block">
         <button @click="toggleMeasureDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
-          <i class="fas fa-tachometer-alt mr-2"></i>
-          <a style="color: white;">
+          <i class="fas fa-tachometer-alt mr-2"></i>         
             <span>Mesures</span>
             <img style="margin-left: 5px; margin-right: 5px;" id="sbLogo" src="../assets/measure.svg"
               alt="mesure"></img>
-          </a>
+            <span class="selected green">: {{ selectedMetric }}</span>      
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
-        <div v-if="isMeasureDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
-
+        <Transition>
+        <div v-if="isMeasureDropdownOpen" class="absolute gridContainer">         
           <a v-for="ev in uniqueMetric" :key="ev" :value="ev" @click="selectMetric(ev)"
-            class=" green block px-4 py-2 hover:bg-gray-600">{{ ev }}</a>
-
-
+            class=" green hover:bg-gray-600 ">{{ ev }}</a>
         </div>
+        </Transition>
       </div>
     </div>
     <div class="mb-5 white">
@@ -279,5 +278,15 @@ option {
 
 body {
   color: white
+}
+
+.v-enter-active,
+.v-leave-active {
+  transition: opacity 0.1s ease;
+}
+
+.v-enter-from,
+.v-leave-to {
+  opacity: 0;
 }
 </style>
