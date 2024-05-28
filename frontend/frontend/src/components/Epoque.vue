@@ -10,6 +10,8 @@ export default {
       //Graph settings
       evals: [],
       uniqueSystems: [],
+      uniqueRound: [],
+      uniqueMetric: [],
       selectedMetric: 'desiredMetric',
       selectedRound: 'desiredRound',
       x: null,
@@ -52,19 +54,22 @@ export default {
           'Authorization': `Token ${this.$store.state.token}`
         }
       })
-      .then(response => {
-        this.evals = response.data;
-        
-        const uniqueSystems = [...new Set(response.data.map(ev => ev.System_id))];
-        this.uniqueSystems = uniqueSystems;
-        
-        console.log("Unique Systems:", uniqueSystems);
+        .then(response => {
+          this.evals = response.data;
 
-        this.createChart(response.data);
-      })
-      .catch(error => {
-        console.error(error);
-      });
+          const uniqueSystems = [...new Set(response.data.map(ev => ev.System_id))];
+          this.uniqueSystems = uniqueSystems;
+          const uniqueRound = [...new Set(response.data.map(ev => ev.Round))];
+          this.uniqueRound = uniqueRound;
+          const uniqueMetric = [...new Set(response.data.map(ev => ev.Metric))];
+          this.uniqueMetric = uniqueMetric;
+          console.log("Unique Systems:", uniqueSystems);
+          console.log("Unique Round:", uniqueRound);
+          this.createChart(response.data);
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
     createChart(data) {
       console.log("Original Data:", data);
@@ -214,12 +219,17 @@ export default {
           <span>Époques</span>
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
+        <!--   <select @click="selectRound(selected)" v-model="selected">
+          <option disabled value="">Sélectionnez une époque</option>
+          <option v-for="ev in uniqueRound" :key="ev" :value="ev">{{ ev }}
+          </option>
+        </select>
+        <span>value : </span> -->
         <div v-if="isEpochDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
-          <a @click="selectRound('1')" class=" green block px-4 py-2 hover:bg-gray-600" >1</a>
-          <a @click="selectRound('2')" class=" green block px-4 py-2 hover:bg-gray-600" >2</a>
-          <a @click="selectRound('3')" class=" green block px-4 py-2 hover:bg-gray-600" >3</a>
-          <a @click="selectRound('4')" class=" green block px-4 py-2 hover:bg-gray-600" >4</a>
-          <a @click="selectRound('5')" class=" green block px-4 py-2 hover:bg-gray-600" >5</a>
+
+          <a v-for="ev in uniqueRound" :key="ev" :value="ev" @click="selectRound(ev)"
+            class=" green block px-4 py-2 hover:bg-gray-600">{{ ev }}</a>
+
 
         </div>
       </div>
@@ -234,23 +244,23 @@ export default {
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
         <div v-if="isMeasureDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
-          <a @click="selectMetric('recip_rank')" class="green block px-4 py-2 hover:bg-gray-600" >recip_rank</a>
-          <a @click="selectMetric('P_15')" class="green block px-4 py-2 hover:bg-gray-600" >P_15</a>
-          <a @click="selectMetric('map')" class="green block px-4 py-2 hover:bg-gray-600" >Map</a>
-          <a @click="selectMetric('iprec_at_recall_0.40')" class="green block px-4 py-2 hover:bg-gray-600">iprec_at_recall_0.40</a>
+
+          <a v-for="ev in uniqueMetric" :key="ev" :value="ev" @click="selectMetric(ev)"
+            class=" green block px-4 py-2 hover:bg-gray-600">{{ ev }}</a>
+
 
         </div>
       </div>
     </div>
-    <div class="mb-5">
+    <div class="mb-5 white">
       Highlight :
       <select class="bg-gray-800 text-white p-2 rounded" name="highlightEpoque" id="highlightEpoque">
         <option>X</option>
         <option>Best/Worst Overall</option>
       </select>
 
-      <input v-model="displayMeanMedian" class="ml-4" type="checkbox" />Display Mean/Median?
-      <input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" />Display Significative
+      <input v-model="displayMeanMedian" class="ml-4" type="checkbox" /> <span>Display Mean/Median?</span>
+      <input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" /><span>Display Significative</span>
       difference only?
     </div>
     <!-- Placeholder for graph -->
@@ -262,3 +272,12 @@ export default {
     </div>
   </div>
 </template>
+<style>
+option {
+  color: black
+}
+
+body {
+  color: white
+}
+</style>
