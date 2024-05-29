@@ -11,8 +11,12 @@ export default {
       //Graph settings
       evals: [],
       uniqueSystems: [],
-      selectedMetric: 'desiredMetric',
-      selectedRound: 'desiredRound',
+      uniqueRound: [],
+      uniqueMetric: [],
+      uniqueQueries:[],
+      selectedMetric: 'not choosed',
+      selectedRound: 'not choosed',
+      selectedQuery: 'not choosed',
       x: null,
       y: null,
       xAxis: null,
@@ -21,7 +25,7 @@ export default {
       width: 800,
       height: 400,
       //option settings
-      isEpochDropdownOpen: false,
+      isQueryDropdownOpen: false,
       isMeasureDropdownOpen: false,
       displayMeanMedian: false,
       displaySignificativeDifference: false
@@ -39,9 +43,13 @@ export default {
       this.selectedRound = round;
       this.createChart(this.evals);
     },
+    selectQuery(query) {
+      this.selectedQuery = query;
+      this.createChart(this.evals);
+    },
 
-    toggleEpochDropdown() {
-      this.isEpochDropdownOpen = !this.isEpochDropdownOpen;
+    toggleQueryDropdown() {
+      this.isQueryDropdownOpen = !this.isQueryDropdownOpen;
     },
     toggleMeasureDropdown() {
       this.isMeasureDropdownOpen = !this.isMeasureDropdownOpen;
@@ -53,19 +61,24 @@ export default {
           'Authorization': `Token ${this.$store.state.token}`
         }
       })
-      .then(response => {
-        this.evals = response.data;
-        
-        const uniqueSystems = [...new Set(response.data.map(ev => ev.System_id))];
-        this.uniqueSystems = uniqueSystems;
-        
-        console.log("Unique Systems:", uniqueSystems);
+        .then(response => {
+          this.evals = response.data;
 
-        this.createChart(response.data);
-      })
-      .catch(error => {
-        console.error(error);
-      });
+          const uniqueSystems = [...new Set(response.data.map(ev => ev.System_id))];
+          this.uniqueSystems = uniqueSystems;
+          const uniqueRound = [...new Set(response.data.map(ev => ev.Round))];
+          this.uniqueRound = uniqueRound;
+          const uniqueMetric = [...new Set(response.data.map(ev => ev.Metric))];
+          this.uniqueMetric = uniqueMetric;
+          const uniqueQuery = [...new Set(response.data.map(ev => ev.Query))];
+          this.uniqueQuery = uniqueQuery;
+          console.log("Unique Systems:", uniqueSystems);
+          console.log("Unique Query:", uniqueQuery);
+          this.createChart(response.data);
+        })
+        .catch(error => {
+          console.error(error);
+        });
     },
     createChart(data) {
       console.log("Original Data:", data);
@@ -116,13 +129,13 @@ export default {
       // Mettre à jour le graphique chaque fois que `selectedMetric` ou `selectedRound` changent
       this.$watch('selectedMetric', (newMetric) => {
         console.log("Metric changed to:", newMetric);
-        const newData = this.evals.filter(d => d.Metric === newMetric && d.Round === this.selectedRound);
+        const newData = this.evals.filter(d => d.Metric === newMetric && d.Query === this.selectedQuery);
         this.updateChart(newData, x, y, xAxis, yAxis, svg, width, height);
       });
 
-      this.$watch('selectedRound', (newRound) => {
-        console.log("Round changed to:", newRound);
-        const newData = this.evals.filter(d => d.Metric === this.selectedMetric && d.Round === newRound);
+      this.$watch('selectedRound', (newQuery) => {
+        console.log("Query changed to:", newQuery);
+        const newData = this.evals.filter(d => d.Metric === this.selectedMetric && d.Query === newQuery);
         this.updateChart(newData, x, y, xAxis, yAxis, svg, width, height);
       });
     },
@@ -179,9 +192,9 @@ export default {
       const newData = this.evals.filter(d => d.Metric === metric && d.Round === this.selectedRound);
       this.updateChart(newData, this.x, this.y, this.xAxis, this.yAxis, this.svg, this.width, this.height);
     },
-    selectRound(round) {
-      this.selectedRound = round;
-      const newData = this.evals.filter(d => d.Metric === this.selectedMetric && d.Round === round);
+    selectQuery(Query) {
+      this.selectedQuery = Query;
+      const newData = this.evals.filter(d => d.Metric === this.selectedMetric && d.Query === Query);
       this.updateChart(newData, this.x, this.y, this.xAxis, this.yAxis, this.svg, this.width, this.height);
     }
   },
@@ -210,32 +223,32 @@ export default {
     </div>
     <div class="grid grid-cols-2 gap-4 mb-5">
       <div class="relative inline-block">
-        <button @click="toggleEpochDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
-          <i class="fas fa-calendar-alt mr-2"></i>
+        <button @click="toggleQueryDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
+          <i></i>
           <span>Requêtes</span>
-          <i class="fas fa-chevron-down ml-2"></i>
+          <span class="selected green">: {{ selectedQuery}}</span>
         </button>
-        <div v-if="isEpochDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
-          <a class="green block px-4 py-2 hover:bg-gray-600" href="#">001</a>
-          <a class=" green block px-4 py-2 hover:bg-gray-600" href="#">002</a>
-          <a class=" green block px-4 py-2 hover:bg-gray-600" href="#">003</a>
-          <a class=" green block px-4 py-2 hover:bg-gray-600" href="#">004</a>
-          <a class=" green block px-4 py-2 hover:bg-gray-600" href="#">...</a>
+        <Transition>
+        <div v-if="isQueryDropdownOpen" class="absolute gridContainer" style="grid-template-columns: repeat(7, minmax(40px, 1fr));">         
+          <a v-for="ev in uniqueQuery" :key="ev" :value="ev" @click="selectQuery(ev)"
+            class=" green hover:bg-gray-600 ">{{ ev }}</a>
         </div>
+        </Transition>
       </div>
       <div class="relative inline-block">
         <button @click="toggleMeasureDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
-          <i class="fas fa-tachometer-alt mr-2"></i>
-          <a style="color: white;">
+          <i></i>
+          
             <span>Mesures</span>
-            <img style="margin-left: 5px; margin-right: 5px;" id="sbLogo" src="../assets/measure.svg" alt="mesure"></img>
-        </a>
-          <i class="fas fa-chevron-down ml-2"></i>
+            <img style="margin-left: 5px; margin-right: 5px;" id="sbLogo" src="../assets/measure.svg" alt="mesure"></img>  
+          <span class="selected green">: {{ selectedMetric }}</span>  
         </button>
-        <div v-if="isMeasureDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
-          <a class="green block px-4 py-2 hover:bg-gray-600" href="#">recip_rank</a>
-          <a class="green block px-4 py-2 hover:bg-gray-600" href="#">other_metric</a>
+        <Transition>
+        <div v-if="isMeasureDropdownOpen" class="absolute gridContainer" style="margin-left: 150px;">         
+          <a v-for="ev in uniqueMetric" :key="ev" :value="ev" @click="selectMetric(ev)"
+            class=" green hover:bg-gray-600 ">{{ ev }}</a>
         </div>
+        </Transition>
       </div>
     </div>
     <div class="mb-5">
@@ -248,8 +261,7 @@ export default {
     </div>
     <!-- Placeholder for graph -->
     <div id="graph">
-      <img alt="Line graph showing system performance over time with multiple lines for different systems"
-        height="400" src="../assets/graphique2.png" width="600" />
+      <div id="chart"></div>
         
     </div>
   </div>
