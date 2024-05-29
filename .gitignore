@@ -112,3 +112,9 @@ ENV/
 # sqlite
 *.sqlite
 *.sqlite3
+backend/ExCEIR/requirements.txt
+backend/ExCEIR/vis/migrations/0001_initial.py
+backend/ExCEIR/vis/migrations/0002_customuser_info_team_info.py
+frontend/frontend/package-lock.json
+frontend/frontend/package.json
+backend/ExCEIR/requirements.txt
