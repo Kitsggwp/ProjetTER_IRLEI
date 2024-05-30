@@ -46,6 +46,7 @@ class UserListView(generics.ListAPIView):
     queryset = User.objects.all()
     serializer_class = CustomUserCreateSerializer
 
+
 class CustomUserCreateView(UserViewSet):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserCreateSerializer
@@ -59,14 +60,16 @@ class CustomUserCreateView(UserViewSet):
         User.objects.filter(id__in=user_ids).delete()
         return Response({"message": "Users deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
 
-    @action(detail=True, methods=['put'], url_path='update')
+    @action(detail=True, methods=['put'], url_path='')
     def update_user(self, request, pk=None):
         user = get_object_or_404(CustomUser, pk=pk)
         serializer = self.serializer_class(user, data=request.data, partial=True)
+        print("data", request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EvalViewSet(viewsets.ModelViewSet):
     queryset = Eval.objects.all()
@@ -74,11 +77,28 @@ class EvalViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         data = request.data  # Données envoyées depuis le frontend
-        serializer = self.get_serializer(data=data, many=True)  # Sérialisation des données
-        if serializer.is_valid():
-            serializer.save()  # Enregistrement des données dans la base de données
-            return Response({"message": "Les données ont été ajoutées avec succès."}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        for eval_data in data:
+            System_id = eval_data.get('System_id')
+            Round = eval_data.get('Round')
+            Query = eval_data.get('Query')
+            Metric = eval_data.get('Metric')
+            defaults = {
+                'Value': eval_data.get('Value'),
+                'System_collection': eval_data.get('System_collection'),
+                'Team_id': eval_data.get('Team')
+            }
+
+            # Utiliser update_or_create pour mettre à jour ou créer l'enregistrement
+            obj, created = Eval.objects.update_or_create(
+                System_id=System_id,
+                Round=Round,
+                Query=Query,
+                Metric=Metric,
+                defaults=defaults
+            )
+
+        return Response({"message": "Les données ont été ajoutées/mises à jour avec succès."},
+                        status=status.HTTP_201_CREATED)
 
     def delete(self, request):
         eval_ids = request.data.get('ids', [])
@@ -93,6 +113,7 @@ class TeamViewSet(viewsets.ModelViewSet):
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
 
+
 def delete_eval_by_system(request):
     if request.method == 'POST':
         system_name = request.POST.get('system_name')
@@ -100,6 +121,7 @@ def delete_eval_by_system(request):
         return JsonResponse({'message': 'Les enregistrements ont été supprimés avec succès.'})
     else:
         return JsonResponse({'error': 'La méthode de requête n\'est pas autorisée.'}, status=405)
+
 
 def index(request):
     if request.method == "POST":

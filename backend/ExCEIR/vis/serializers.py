@@ -6,8 +6,8 @@ from djoser.serializers import UserCreateSerializer
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
-    team = serializers.CharField(max_length=100)
-    info = serializers.CharField(max_length=100)
+    team = serializers.CharField(max_length=100, allow_blank=True, required=False)
+    info = serializers.CharField(max_length=100, allow_blank=True, required=False)
 
     class Meta:
         model = CustomUser
@@ -16,9 +16,12 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
     def update(self, instance, validated_data):
         instance.username = validated_data.get('username', instance.username)
+        instance.is_superuser = validated_data.get('is_superuser', instance.is_superuser)
         if 'password' in validated_data:
-            instance.set_password(validated_data['password'])
+            if validated_data['password'] != "nothingtochange":
+                instance.set_password(validated_data['password'])
         instance.team = validated_data.get('team', instance.team)
+        instance.info = validated_data.get('info', instance.info)
         instance.save()
         return instance
 

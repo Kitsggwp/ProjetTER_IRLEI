@@ -24,8 +24,8 @@ class Team(models.Model):
 
 
 class CustomUser(AbstractUser):
-    team = models.CharField(max_length=100)
-    info = models.CharField(max_length=100, default="null")
+    team = models.CharField(max_length=100, default="null", null=True, blank=True)
+    info = models.CharField(max_length=100, default="null", null=True, blank=True)
 
     def __str__(self):
         return self.username
@@ -33,12 +33,15 @@ class CustomUser(AbstractUser):
 
 class Eval(models.Model):
     System_id = models.CharField(max_length=100, default="null")
-    System_collection = models.CharField(max_length=100, default="null")
+    System_collection = models.CharField(max_length=100, default="null", null=True, blank=True)
     Round = models.CharField(max_length=100, default="null")
     Query = models.CharField(max_length=100, default="null")
     Metric = models.CharField(max_length=100, default="null")
     Value = models.CharField(max_length=100, default="null")
     Team = models.ForeignKey(Team, on_delete=models.CASCADE, to_field='name')  # Utilise le champ 'name' comme clé étrangère
+
+    class Meta:
+        unique_together = (('System_id', 'Round', 'Query', 'Metric'),)   # contrainte d'unicité
 
     def __str__(self):
         return str(self.System_id)

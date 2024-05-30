@@ -94,39 +94,63 @@ const DisplayMethod = (section, event) => {
         <button @click="DisplayMethod('user', 'displayAccount')" class="cursor-pointer">Visualiser les
           utilisateurs</button>
       </div>
-    <Transition>
-      <div v-if="displayAccountCreation">
-        <form @submit.prevent="submitFormRegister">
-          <input type="text" placeholder="Nom d'utilisateur" v-model="username" required>
-          <input type="text" placeholder="Mot de passe" v-model="password" required>
-          <input type="text" placeholder="Description" v-model="userinfo">
-          <select v-model="selectedUserTeam" required>
-            <option disabled value="">Sélectionnez une équipe</option>
-            <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
-          </select>
-          <button class="cursor-pointer" type="submit">Créer</button>
-        </form>
-      </div>
-    </Transition>
+      <Transition>
+        <div v-if="displayAccountCreation">
+          <form @submit.prevent="submitFormRegister">
+            <input type="text" placeholder="Nom d'utilisateur" v-model="username" required>
+            <input type="text" placeholder="Mot de passe" v-model="password" required>
+            <input type="text" placeholder="Description (optionnel)" v-model="userinfo">
+            <select v-model="selectedUserTeam">
+              <option disabled value="">Sélectionnez une équipe</option>
+              <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
+
+            </select>
+            <input type="checkbox" id="checkbox" v-model="is_superuser" />
+            <label for="checkbox">Administrateur : {{ is_superuser }}</label>
+            <button class="cursor-pointer" type="submit">Créer</button>
+          </form>
+          <br />
+          Log :
+          <div class="bg-gray-800" id="console">
+            {{ consoleAccountCreationMessage }}
+          </div>
+        </div>
+      </Transition>
 
       <div v-if="displayUserEditForm">
         <form @submit.prevent="updateUser">
           <label for="useredit">User à modifier</label>
-          <select id="useredit" v-model="editedUser.id" required>
+          <select id="useredit" v-model="selectedUserId" @change="loadUserData" required>
+            <option disabled value="">Sélectionnez un utilisateur</option>
             <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
           </select>
 
-          <input type="text" placeholder=" Modifier username" v-model="editedUser.username" required>
-          <input type="password" placeholder="Modifier password" v-model="editedUser.password" required>
-          <input type="text" placeholder=" Modifier description" v-model="editedUser.info" required>
+          <!-- Form to edit user details -->
+          <div v-if="editedUser.id">
+            <input type="text" placeholder="Modifier username" v-model="editedUser.username" required>
+            <input type="password" placeholder="Modifier password" v-model="editedUser.password">
+            <input type="text" placeholder="Modifier description" v-model="editedUser.info">
 
-          <label for="team">Team :</label>
-          <select id="team" v-model="editedUser.team" required>
-            <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
-          </select>
+            <label for="team">Team :</label>
+            <select id="team" v-model="editedUser.team">
+              <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
+            </select>
 
-          <button type="submit">Enregistrer</button>
+            <input type="checkbox" id="checkbox" v-model="editedUser.is_superuser" />
+            <label for="checkbox">Administrateur : {{ editedUser.is_superuser }}</label>
+            <button type="submit">Enregistrer</button>
+            <div>
+              Ne rien mettre dans password si vous ne voulez pas le modifier.
+            </div>
+          </div>
+
         </form>
+
+        <br />
+        Log :
+        <div class="bg-gray-800" id="console">
+          {{ consoleEditUserMessage }}
+        </div>
       </div>
 
       <div v-if="displayAccountDelete">
@@ -137,6 +161,11 @@ const DisplayMethod = (section, event) => {
           </select>
           <button class="cursor-pointer" type="submit">Supprimer</button>
         </form>
+        <br />
+        Log :
+        <div class="bg-gray-800" id="console">
+          {{ consoleDeleteAccountMessage }}
+        </div>
       </div>
 
       <div v-if="displayAccount">
@@ -145,6 +174,7 @@ const DisplayMethod = (section, event) => {
             <tr>
               <th>Username</th>
               <th>Team</th>
+              <th>Admin</th>
               <th>Description</th>
             </tr>
           </thead>
@@ -152,6 +182,7 @@ const DisplayMethod = (section, event) => {
             <tr v-for="(user, index) in users" :key="index">
               <td>{{ user.username }}</td>
               <td>{{ user.team }}</td>
+              <td>{{ user.is_superuser }}</td>
               <td>{{ user.info }}</td>
             </tr>
           </tbody>
@@ -163,8 +194,8 @@ const DisplayMethod = (section, event) => {
     <div class="bg-gray-800">
 
       <div class="bg-gray-600">
-        <button @click="DisplayMethod('system', 'displayFileInput')" class="cursor-pointer">Ajouter des fichiers
-          d'évaluations</button>
+        <button @click="DisplayMethod('system', 'displayFileInput')" class="cursor-pointer">Ajouter / Mettre à jour des
+          fichiers d'évaluations</button>
         <button @click="DisplayMethod('system', 'displayFileDelete')" class="cursor-pointer">Retirer un système</button>
         <button @click="DisplayMethod('system', 'displayFile')" class="cursor-pointer">Visualiser les systèmes</button>
       </div>
@@ -189,7 +220,7 @@ const DisplayMethod = (section, event) => {
 
       <div v-if="displayFileDelete">
         <form @submit.prevent="deleteEvalBySystem">
-          <select v-model="selectedSystem">
+          <select v-model="selectedSystem" required>
             <option disabled value="">Sélectionnez un système</option>
             <option v-for="ev in uniqueSystems" :key="ev" :value="ev">{{ ev }}</option>
           </select>
@@ -239,7 +270,7 @@ const DisplayMethod = (section, event) => {
         <br />
         Log :
         <div class="bg-gray-800" id="console">
-          {{ consoleaddsystemMessage }}
+          {{ consoleaddteamMessage }}
         </div>
       </div>
 
@@ -255,7 +286,7 @@ const DisplayMethod = (section, event) => {
         <br />
         Log :
         <div class="bg-gray-800" id="console">
-          {{ consoledeletesystemMessage }}
+          {{ consoledeleteteamMessage }}
         </div>
       </div>
 
@@ -298,15 +329,18 @@ export default {
       uniqueSystems: [], // liste evals avec nom des systems uniques
       users: '', //stocker les infos sur les users
       allNewEvals: [],
+      is_superuser: false,
       //message dans les div consoles
       consoleaddsystemMessage: '',
       consoledeletesystemMessage: '',
-      editedUser: {
-        id: '',
-        username: '',
-        password: '',
-        team: ''
-      },
+      consoleAccountCreationMessage: '',
+      consoleDeleteAccountMessage: '',
+      consoleEditUserMessage: '',
+      consoleaddteamMessage: '',
+      consoledeleteteamMessage: '',
+
+      selectedUserId: '', // ID de l'utilisateur sélectionné
+      editedUser: {}, // Données de l'utilisateur en cours d'édition
       teamname: '',
     };
   },
@@ -330,25 +364,34 @@ export default {
 
   },
   methods: {
+
+    loadUserData() {
+      const user = this.users.find(user => user.id === this.selectedUserId);
+      if (user) {
+        this.editedUser = { ...user }; // Copie les données de l'utilisateur sélectionné dans editedUser
+      }
+    },
     //Sign up
     submitFormRegister(e) {
       const formData = {
         username: this.username,
         password: this.password,
         team: this.selectedUserTeam,
-        info: this.userinfo
+        info: this.userinfo,
+        is_superuser: this.is_superuser
       }
-      console.log(formData)
       axios
         .post('/api/v1/users/', formData)
         .then(response => {
 
           this.$router.push('/')
           console.log(response)
+          this.consoleAccountCreationMessage = "Opération réussie"
           this.getUsers()
         })
         .catch(error => {
           console.log(error)
+          this.consoleAccountCreationMessage = error
         })
     },
 
@@ -370,7 +413,6 @@ export default {
     },
 
     deleteUserById() {
-      console.log(this.selectedUser)
 
       axios.delete(`api/user/bulk-delete/`, {
         headers: {
@@ -382,10 +424,12 @@ export default {
         .then(response => {
           //console.log(response.data.message);
           this.getUsers()
+          this.consoleDeleteAccountMessage = "Opération réussie"
           // Mettez à jour votre interface utilisateur si nécessaire
         })
         .catch(error => {
           console.error(error);
+          this.consoleAccountCreationMessage = error
         });
 
 
@@ -393,12 +437,15 @@ export default {
     },
 
     updateUser() {
-      console.log(this.editedUser.info)
+      const passwordValue = this.editedUser.password // Supprimer les espaces vides
+      const passwordToSend = passwordValue ? passwordValue : "nothingtochange"; // Si vide, envoyez nothingtochange
+
       axios.put(`api/user/${this.editedUser.id}/`, {
         username: this.editedUser.username,
-        password: this.editedUser.password,
+        password: passwordToSend,
         team: this.editedUser.team,
-        info: this.editedUser.info
+        info: this.editedUser.info,
+        is_superuser: this.editedUser.is_superuser
       }, {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`,
@@ -406,9 +453,11 @@ export default {
       }).then(response => {
         console.log(response.data);
         this.getUsers()
+        this.consoleEditUserMessage = "Opération réussie"
         // Traitez la réponse ici, mettez à jour l'interface utilisateur si nécessaire
       }).catch(error => {
         console.error(error);
+        this.consoleEditUserMessage = error
       });
     },
 
@@ -430,7 +479,6 @@ export default {
     },
 
     addTeam() {
-      console.log(this.teamname)
       axios.post('api/team/', { name: this.teamname, info: this.teaminfo }, {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`
@@ -439,13 +487,13 @@ export default {
 
         .then(response => {
 
-          this.consoleaddsystemMessage = "Opération réussie"
+          this.consoleaddteamMessage = "Opération réussie"
           this.getTeam()
 
 
         })
         .catch(error => {
-          this.consoleaddsystemMessage = "Erreur : " + error;
+          this.consoleaddteamMessage = "Erreur : " + error;
         });
 
     },
@@ -453,14 +501,15 @@ export default {
 
 
     deleteTeamById() {
-      console.log(this.team)
       axios.delete(`/api/team/${this.team}/`, {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`,
         }
       }).then(response => {
+        this.consoledeleteteamMessage = "Opération réussie"
         this.getTeam(); // Refresh the team list after deletion
       }).catch(error => {
+        this.consoledeleteteamMessage = error
         console.error(error);
       });
     },
@@ -468,14 +517,13 @@ export default {
 
     // CRUD EVAL
     getEval() {
-      console.log("get eval")
       axios.get('api/eval/', {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`
         }
       })
         .then(response => {
-          // console.log(response.data);
+
           this.evals = response.data
 
           const uniqueSystems = Array.from(
@@ -483,8 +531,7 @@ export default {
           );
 
           this.uniqueSystems = uniqueSystems;
-          //  console.log(response.data)
-          console.log(this.uniqueSystems)
+
         })
         .catch(error => {
           console.error(error);
@@ -495,7 +542,6 @@ export default {
 
 
     addEval(newEval) {
-      console.log(newEval)
       this.consoleaddsystemMessage = "Traitement en cours...";
       axios.post('api/eval/', newEval, {
         headers: {
@@ -517,7 +563,6 @@ export default {
     },
 
     deleteEvalBySystem() {
-      console.log(this.selectedSystem)
       this.consoledeletesystemMessage = "Traitement en cours...";
       let AllEvalsDelete = [];
       this.evals.forEach(element => {
@@ -525,7 +570,6 @@ export default {
           AllEvalsDelete.push(element.id)
         }
       });
-      console.log(AllEvalsDelete)
 
       axios.delete(`api/eval/`, {
         headers: {
@@ -572,11 +616,14 @@ export default {
           for (const line of lines) {
             const parts = line.trim().split('\t');
             if (parts.length === 3) {
-              const metric = parts[0];
-              const query = parts[1];
-              const value = parts[2];
-              const newEval = { System_collection: this.systemcollection, Team: this.selectedTeam, System_id: system, Round: round, Query: query, Metric: metric, Value: value };
-              this.allNewEvals.push(newEval);
+              if (parts[0] !== "num_ret" && parts[0] !== "num_rel" && parts[0] !== "num_rel_ret") {
+                const metric = parts[0];
+                const query = parts[1];
+                const value = parts[2];
+                const newEval = { System_collection: this.systemcollection, Team: this.selectedTeam, System_id: system, Round: round, Query: query, Metric: metric, Value: value };
+                this.allNewEvals.push(newEval);
+              }
+
             }
           }
           resolve(); // Résoudre la promesse une fois que toutes les opérations sont terminées
@@ -588,13 +635,11 @@ export default {
 
     submitFormAddEval(event) {
       const files = event.target[0].files;
-      console.log(event)
       this.traverseFiles(files);
 
     },
 
     traverseFiles(files) {
-      console.log("traversefile");
       const promises = [];
       for (const file of files) {
         promises.push(this.processEvalFile(file));
