@@ -1,3 +1,4 @@
+from django.db.models import Avg
 from django.http import HttpResponse, JsonResponse
 from django.template import loader
 from django.shortcuts import render
@@ -107,6 +108,40 @@ class EvalViewSet(viewsets.ModelViewSet):
 
         Eval.objects.filter(id__in=eval_ids).delete()
         return Response({"message": "Evaluations deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=['get'], url_path='average-values')
+    def average_values(self, request):
+        query = request.query_params.get('query')
+        round = request.query_params.get('round')
+        metric = request.query_params.get('metric')
+        system = request.query_params.get('system')
+
+        queryset = Eval.objects.all()
+
+        if query:
+            queryset = queryset.filter(Query=query)
+        if round:
+            queryset = queryset.filter(Round=round)
+        if metric:
+            queryset = queryset.filter(Metric=metric)
+        if system:
+            queryset = queryset.filter(System_id=system)
+
+        values = queryset.values_list('Value', flat=True)
+        values = list(map(float, values))
+
+        if not values:
+            return Response({"error": "No data found for the specified filters."}, status=status.HTTP_404_NOT_FOUND)
+
+        average_value = sum(values) / len(values)
+        median_value = np.median(values)
+        std_deviation = np.std(values)
+
+        return Response({
+            "average_value": average_value,
+            "median_value": median_value,
+            "std_deviation": std_deviation
+        }, status=status.HTTP_200_OK)
 
 
 class TeamViewSet(viewsets.ModelViewSet):

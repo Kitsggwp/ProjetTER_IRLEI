@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
 
 const isEpochDropdownOpen = ref(false);
 const isMeasureDropdownOpen = ref(false);
@@ -29,7 +30,7 @@ const toggleMeasureDropdown = () => {
         <a>
           <button @click="toggleGearDropdown" class="cursor-pointer">
             <img id="sbLogo" src="../assets/gear.svg" alt="Gear Icon"></img>
-          </button>  
+          </button>
         </a>
       </div>
     </div>
@@ -51,8 +52,9 @@ const toggleMeasureDropdown = () => {
           <i class="fas fa-tachometer-alt mr-2"></i>
           <a style="color: white;">
             <span>Mesures</span>
-            <img style="margin-left: 5px; margin-right: 5px;" id="sbLogo" src="../assets/measure.svg" alt="mesure"></img>
-        </a>
+            <img style="margin-left: 5px; margin-right: 5px;" id="sbLogo" src="../assets/measure.svg"
+              alt="mesure"></img>
+          </a>
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
         <div v-if="isMeasureDropdownOpen" class="absolute bg-gray-800 text-white mt-1 rounded">
@@ -71,8 +73,52 @@ const toggleMeasureDropdown = () => {
     </div>
     <!-- Placeholder for graph -->
     <div id="graph">
-      <img alt="Line graph showing system performance over time with multiple lines for different systems"
-        height="400" src="../assets/graphique3.png" width="600" />
+      <img alt="Line graph showing system performance over time with multiple lines for different systems" height="400"
+        src="../assets/graphique3.png" width="600" />
     </div>
   </div>
 </template>
+
+<script>
+import { ref } from 'vue';
+
+export default {
+  created() {
+    this.getAverage('', '4', '2', 'map');
+
+  },
+  methods: {
+
+    // Donne la moyenne et la mediane en fonction du system, query, round et metric
+    // Mettre '' dans un paramètre pour tous sélectionner 
+    //(Exemple : Pour sélectionner toutes les querys et tous les rounds this.getAverage('TF_IDF', '', '', 'P_5');)
+    getAverage(system, query, round, metric) {
+      axios.get('/api/eval/average-values/', {
+        headers: {
+          'Authorization': `Token ${this.$store.state.token}`
+        },
+        params: {
+          system: system,
+          query: query,
+          round: round,
+          metric: metric
+        }
+      })
+        .then(response => {
+          console.log("system :" + system, "query : " + query, "round : " + round, "metric : " + metric, "moyenne : " + response.data.average_value,
+            "mediane : " + response.data.median_value, "écart_type : " + response.data.std_deviation
+
+          );
+
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+
+
+
+  }
+};
+</script>
