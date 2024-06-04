@@ -2,18 +2,17 @@
 import { ref } from 'vue';
 import * as d3 from 'd3';
 import axios from 'axios';
-//import { s } from 'vite/dist/node/types.d-jgA8ss1A';
 
 export default {
   data() {
     return {
-      //Graph settings
       evals: [],
       uniqueSystems: [],
       uniqueRound: [],
       uniqueMetric: [],
       selectedMetric: 'not choosed',
-      selectedRound: 'not choosed',
+      selectedRound: null,
+      selectedQueries: 'all',
       x: null,
       y: null,
       xAxis: null,
@@ -21,14 +20,10 @@ export default {
       svg: null,
       width: 800,
       height: 400,
-      //option settings
       isEpochDropdownOpen: false,
       isMeasureDropdownOpen: false,
       displayMeanMedian: false,
-      displaySignificativeDifference: false
-
-
-
+      displaySignificativeDifference: false,
     };
   },
   methods: {
@@ -40,7 +35,6 @@ export default {
       this.selectedRound = round;
       this.createChart(this.evals);
     },
-
     toggleEpochDropdown() {
       this.isEpochDropdownOpen = !this.isEpochDropdownOpen;
     },
@@ -48,7 +42,6 @@ export default {
       this.isMeasureDropdownOpen = !this.isMeasureDropdownOpen;
     },
     getEval() {
-      console.log("get eval");
       axios.get('/api/eval/', {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`
@@ -56,15 +49,9 @@ export default {
       })
         .then(response => {
           this.evals = response.data;
-
-          const uniqueSystems = [...new Set(response.data.map(ev => ev.System_id))];
-          this.uniqueSystems = uniqueSystems;
-          const uniqueRound = [...new Set(response.data.map(ev => ev.Round))];
-          this.uniqueRound = uniqueRound;
-          const uniqueMetric = [...new Set(response.data.map(ev => ev.Metric))];
-          this.uniqueMetric = uniqueMetric;
-          console.log("Unique Systems:", uniqueSystems);
-          console.log("Unique Round:", uniqueRound);
+          this.uniqueSystems = [...new Set(response.data.map(ev => ev.System_id))];
+          this.uniqueRound = [...new Set(response.data.map(ev => ev.Round))];
+          this.uniqueMetric = [...new Set(response.data.map(ev => ev.Metric))];
           this.createChart(response.data);
         })
         .catch(error => {
@@ -72,128 +59,295 @@ export default {
         });
     },
     createChart(data) {
-      console.log("Original Data:", data);
-
-      // Configuration du graphique
-      const margin = { top: 20, right: 30, bottom: 40, left: 40 };
+      const margin = { top: 30, right: 0, bottom: 30, left: 40 };
       const width = this.width - margin.left - margin.right;
       const height = this.height - margin.top - margin.bottom;
 
-      // Supprimer l'ancien graphique si nécessaire
+      const filteredData = data
+        .filter(d => d.Metric === this.selectedMetric && (this.selectedRound === null || d.Round === this.selectedRound)&&d.Query===this.selectedQueries)
+        .sort((a, b) => d3.ascending(a.Round, b.Round));
+
+      // Ajuster l'échelle de couleur
+      const colorScale = d3.scaleQuantile()
+        .domain([0, 1])
+        .range(d3.schemeSpectral[9]);
+
+      const svgElement = this.GroupedBarChart(filteredData, {
+        x: d => d.Round,
+        y: d => d.Value,
+        z: d => d.System_id,
+        marginTop: margin.top,
+        marginRight: margin.right,
+        marginBottom: margin.bottom,
+        marginLeft: margin.left,
+        width: this.width,
+        height: this.height,
+        yLabel: 'Value',
+        div_name: '#chart',
+        test_system: 'test_system_id',
+        zDomain: this.uniqueSystems,
+        colorScale: colorScale
+      });
+
       d3.select("#chart").selectAll("*").remove();
+      d3.select("#chart").node().appendChild(svgElement);
 
-      // Création du conteneur SVG
-      const svg = d3.select("#chart")
-        .append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+      // Add legend
+      const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
+      d3.select("#legendBox").selectAll("*").remove();
+      d3.select("#legendBox").node().appendChild(legendElement);
 
-      // Définir les échelles
-      const x = d3.scaleBand()
-        .range([0, width])
-        .padding(0.1);
-
-      const y = d3.scaleLinear()
-        .range([height, 0]);
-
-      // Ajouter les axes
-      const xAxis = svg.append("g")
-        .attr("class", "x-axis")
-        .attr("transform", `translate(0,${height})`);
-
-      const yAxis = svg.append("g")
-        .attr("class", "y-axis");
-
-      // Initialiser les données
-      const initialData = data.filter(d => d.Metric === this.selectedMetric);
-      this.updateChart(initialData, x, y, xAxis, yAxis, svg, width, height);
-
-      // Stocker les références pour les futures mises à jour
-      this.x = x;
-      this.y = y;
-      this.xAxis = xAxis;
-      this.yAxis = yAxis;
-      this.svg = svg;
-
-      // Mettre à jour le graphique chaque fois que `selectedMetric` ou `selectedRound` changent
       this.$watch('selectedMetric', (newMetric) => {
-        console.log("Metric changed to:", newMetric);
-        const newData = this.evals.filter(d => d.Metric === newMetric && d.Round === this.selectedRound);
-        this.updateChart(newData, x, y, xAxis, yAxis, svg, width, height);
+        const newData = this.evals
+          .filter(d => d.Metric === newMetric && (this.selectedRound === null || d.Round === this.selectedRound)&&d.Query===this.selectedQueries)
+          .sort((a, b) => d3.ascending(a.Round, b.Round));
+
+        const newSvgElement = this.GroupedBarChart(newData, {
+          x: d => d.Round,
+          y: d => d.Value,
+          z: d => d.System_id,
+          marginTop: margin.top,
+          marginRight: margin.right,
+          marginBottom: margin.bottom,
+          marginLeft: margin.left,
+          width: this.width,
+          height: this.height,
+          yLabel: 'Value',
+          div_name: '#chart',
+          test_system: 'test_system_id',
+          colorScale: colorScale
+        });
+        d3.select("#chart").selectAll("*").remove();
+        d3.select("#chart").node().appendChild(newSvgElement);
+
+        // Update legend
+        const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
+        d3.select("#legendBox").selectAll("*").remove();
+        d3.select("#legendBox").node().appendChild(legendElement);
       });
 
       this.$watch('selectedRound', (newRound) => {
-        console.log("Round changed to:", newRound);
-        const newData = this.evals.filter(d => d.Metric === this.selectedMetric && d.Round === newRound);
-        this.updateChart(newData, x, y, xAxis, yAxis, svg, width, height);
+        const newData = this.evals
+          .filter(d => d.Metric === this.selectedMetric && (newRound === null || d.Round === newRound)&&d.Query===this.selectedQueries)
+          .sort((a, b) => d3.ascending(a.Round, b.Round));
+
+        const newSvgElement = this.GroupedBarChart(newData, {
+          x: d => d.Round,
+          y: d => d.Value,
+          z: d => d.System_id,
+          marginTop: margin.top,
+          marginRight: margin.right,
+          marginBottom: margin.bottom,
+          marginLeft: margin.left,
+          width: this.width,
+          height: this.height,
+          yLabel: 'Value',
+          div_name: '#chart',
+          test_system: 'test_system_id',
+          colorScale: colorScale
+        });
+        d3.select("#chart").selectAll("*").remove();
+        d3.select("#chart").node().appendChild(newSvgElement);
+
+        // Update legend
+        const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
+        d3.select("#legendBox").selectAll("*").remove();
+        d3.select("#legendBox").node().appendChild(legendElement);
       });
     },
-    compareAxes(newData, x) {
-      const newXDomain = newData.map(d => d.system);
-      const currentXDomain = x.domain();
-      return newXDomain.length === currentXDomain.length && newXDomain.every((val, index) => val === currentXDomain[index]);
+    GroupedBarChart(data, {
+      x = (d, i) => i,
+      y = d => d,
+      z = () => 1,
+      title,
+      marginTop = 30,
+      marginRight = 0,
+      marginBottom = 30,
+      marginLeft = 40,
+      width = 640,
+      height = 400,
+      xDomain,
+      xRange = [marginLeft, width - marginRight],
+      xPadding = 0.1,
+      yType = d3.scaleLinear,
+      yDomain,
+      yRange = [height - marginBottom, marginTop],
+      zDomain,
+      zPadding = 0.05,
+      yFormat,
+      yLabel,
+      div_name,
+      test_system,
+      colorScale
+    } = {}) {
+      const X = d3.map(data, x);
+      const Y = d3.map(data, y);
+      const Z = d3.map(data, z);
+
+      if (xDomain === undefined) xDomain = X;
+      if (yDomain === undefined) yDomain = [d3.min(Y) < 0 ? d3.min(Y) : 0, d3.max(Y) < 0 ? 0 : d3.max(Y)];
+      if (zDomain === undefined) zDomain = Z;
+      xDomain = new d3.InternSet(xDomain);
+      zDomain = new d3.InternSet(zDomain);
+
+      const I = d3.range(X.length).filter(i => xDomain.has(X[i]) && zDomain.has(Z[i]));
+
+      const xScale = d3.scaleBand(xDomain, xRange).paddingInner(xPadding);
+      const yScale = yType(yDomain, yRange);
+
+      const xzScale = d3.scaleBand(zDomain, [0, xScale.bandwidth()]).padding(zPadding);
+      const color = colorScale;
+
+      const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [0, 0, width, height])
+        .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
+
+      svg.append("g")
+        .attr("transform", `translate(${marginLeft},0)`)
+        .call(d3.axisLeft(yScale).ticks(height / 60, yFormat))
+        .call(g => g.select(".domain").remove())
+        .call(g => g.append("text")
+          .attr("x", -marginLeft)
+          .attr("y", 10)
+          .attr("fill", "currentColor")
+          .attr("text-anchor", "start")
+          .text(yLabel));
+
+      const bar = svg.append("g")
+        .selectAll("rect")
+        .data(I)
+        .join("rect")
+        .attr("x", i => xScale(X[i]) + xzScale(Z[i]))
+        .attr("y", i => yScale(Y[i]))
+        .attr("width", xzScale.bandwidth())
+        .attr("height", i => yScale(0) - yScale(Y[i]))
+        .attr("fill", i => Z[i] === test_system ? '#ff0000' : color(Y[i]))
+        .on("mouseover", function (event, d) {
+          d3.select(".detailsBox")
+            .html(`<p>Round: ${X[d]}</p><p>Value: ${Y[d]}</p><p>System ID: ${Z[d]}</p>`)
+            .style("display", "block");
+        });
+
+      if (title) bar.append("title")
+        .text(title);
+
+      svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(xScale).tickSizeOuter(0));
+
+      return svg.node();
     },
-    updateChart(data, x, y, xAxis, yAxis, svg, width, height) {
-      console.log("Updating Data:", data);
+    Legend(color, {
+      title,
+      tickSize = 6,
+      width = 320,
+      height = 44 + tickSize,
+      marginTop = 18,
+      marginRight = 0,
+      marginBottom = 16 + tickSize,
+      marginLeft = 0,
+      ticks = width / 64,
+      tickFormat,
+      tickValues
+    } = {}) {
+      const svg = d3.create("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("viewBox", [0, 0, width, height])
+        .style("overflow", "visible")
+        .style("display", "block");
 
-      // Transformer les données pour D3.js
-      const transformedData = data.map(d => ({
-        system: d.System_id,  // Ajustez en fonction de votre structure de données réelle
-        value: d.Value        // Ajustez en fonction de votre structure de données réelle
-      }));
-      console.log("Transformed Data:", transformedData);
+      let tickAdjust = g => g.selectAll(".tick line").attr("y1", marginTop + marginBottom - height);
+      let x;
 
-      // Vérifiez si les absisses ont changé
-      const xChanged = !this.compareAxes(transformedData, x);
+      // Continuous
+      if (color.interpolate) {
+        const n = Math.min(color.domain().length, color.range().length);
 
-      // Mettre à jour les échelles
-      if (xChanged) {
-        x.domain(transformedData.map(d => d.system));
-        xAxis.call(d3.axisBottom(x));
+        x = color.copy().rangeRound(d3.quantize(d3.interpolate(marginLeft, width - marginRight), n));
+
+        svg.append("image")
+          .attr("x", marginLeft)
+          .attr("y", marginTop)
+          .attr("width", width - marginLeft - marginRight)
+          .attr("height", height - marginTop - marginBottom)
+          .attr("preserveAspectRatio", "none")
+          .attr("xlink:href", ramp(color.copy().domain(d3.quantize(d3.interpolate(0, 1), n))).toDataURL());
+
+        // scaleSequentialQuantile doesn’t implement ticks or tickFormat.
+        if (!x.ticks) {
+          if (tickValues === undefined) tickValues = d3.range(n);
+          if (typeof tickFormat !== "function") tickFormat = d3.format(tickFormat === undefined ? ",f" : tickFormat);
+        }
       }
-      y.domain([0, d3.max(transformedData, d => d.value)]).nice();
 
-      // Mettre à jour l'axe Y
-      yAxis.transition().duration(1000).call(d3.axisLeft(y));
+      // Discrete
+      else if (color.invertExtent) {
+        const thresholds = color.thresholds ? color.thresholds() // scaleQuantize
+          : color.quantiles ? color.quantiles() // scaleQuantile
+            : color.domain(); // scaleThreshold
 
-      // Liaison des données
-      const bars = svg.selectAll(".bar")
-        .data(transformedData);
+        const thresholdFormat = tickFormat === undefined ? d => d
+          : typeof tickFormat === "string" ? d3.format(tickFormat)
+            : tickFormat;
 
-      // Ajouter de nouvelles barres
-      bars.enter()
-        .append("rect")
-        .attr("class", "bar")
-        .merge(bars) // fusionner avec les éléments existants
-        .transition()
-        .duration(1000)
-        .attr("x", d => x(d.system))
-        .attr("y", d => y(d.value))
-        .attr("width", x.bandwidth())
-        .attr("height", d => height - y(d.value))
-        .attr("fill", "steelblue");
+        x = d3.scaleLinear()
+          .domain([-1, color.range().length - 1])
+          .rangeRound([marginLeft, width - marginRight]);
 
-      // Supprimer les barres qui ne sont plus nécessaires
-      bars.exit().remove();
+        svg.append("g")
+          .selectAll("rect")
+          .data(color.range())
+          .join("rect")
+          .attr("x", (d, i) => x(i - 1))
+          .attr("y", marginTop)
+          .attr("width", (d, i) => x(i) - x(i - 1))
+          .attr("height", height - marginTop - marginBottom)
+          .attr("fill", d => d);
+
+        if (tickValues === undefined) tickValues = d3.range(thresholds.length);
+        tickFormat = thresholdFormat;
+      }
+
+      svg.append("g")
+        .attr("transform", `translate(0,${height - marginBottom})`)
+        .call(d3.axisBottom(x)
+          .ticks(ticks, typeof tickFormat === "string" ? tickFormat : undefined)
+          .tickFormat(typeof tickFormat === "function" ? tickFormat : undefined)
+          .tickSize(tickSize)
+          .tickValues(tickValues))
+        .call(tickAdjust)
+        .call(g => g.select(".domain").remove())
+        .call(g => g.append("text")
+          .attr("x", marginLeft)
+          .attr("y", marginTop + marginBottom - height - 6)
+          .attr("fill", "currentColor")
+          .attr("text-anchor", "start")
+          .text(title));
+
+      return svg.node();
+
+      function ramp(color, n = 256) {
+        const canvas = document.createElement("canvas");
+        canvas.width = n;
+        canvas.height = 1;
+        const context = canvas.getContext("2d");
+        for (let i = 0; i < n; ++i) {
+          context.fillStyle = color(i / (n - 1));
+          context.fillRect(i, 0, 1, 1);
+        }
+        return canvas;
+      }
     },
-    selectMetric(metric) {
-      this.selectedMetric = metric;
-      const newData = this.evals.filter(d => d.Metric === metric && d.Round === this.selectedRound);
-      this.updateChart(newData, this.x, this.y, this.xAxis, this.yAxis, this.svg, this.width, this.height);
-    },
-    selectRound(round) {
-      this.selectedRound = round;
-      const newData = this.evals.filter(d => d.Metric === this.selectedMetric && d.Round === round);
-      this.updateChart(newData, this.x, this.y, this.xAxis, this.yAxis, this.svg, this.width, this.height);
-    }
   },
   mounted() {
     this.getEval();
   }
 };
 </script>
+
 
 <template>
   <div class="bg-gray-700 p-5 rounded-lg framed">
@@ -217,7 +371,7 @@ export default {
         <button @click="toggleEpochDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
           <i class="fas fa-calendar-alt mr-2"></i>
           <span>Époques</span>
-          <span class="selected green">: {{ selectedRound }}</span>
+          <span class="selected green">: {{ selectedRound != null ? selectedRound : "All" }}</span>
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
         <!--   <select @click="selectRound(selected)" v-model="selected">
@@ -227,27 +381,28 @@ export default {
         </select>
         <span>value : </span> -->
         <Transition>
-        <div v-if="isEpochDropdownOpen" class="absolute gridContainer" style="grid-template-columns: repeat(3, minmax(30px, 1fr));">
+          <div v-if="isEpochDropdownOpen" class="absolute gridContainer"
+            style="grid-template-columns: repeat(3, minmax(30px, 1fr));">
 
-          <a v-for="ev in uniqueRound" :key="ev" :value="ev" @click="selectRound(ev)"
-            class=" green block px-4 py-2 hover:bg-gray-600">{{ ev }}</a>
-        </div>
-      </Transition>
+            <a v-for="ev in uniqueRound" :key="ev" :value="ev" @click="selectRound(ev)"
+              class=" green block px-4 py-2 hover:bg-gray-600">{{ ev }}</a>
+            <a @click="selectRound(null)" class=" green block px-4 py-2 hover:bg-gray-600">All</a>
+          </div>
+        </Transition>
       </div>
       <div class="relative inline-block">
         <button @click="toggleMeasureDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
-          <i class="fas fa-tachometer-alt mr-2"></i>         
-            <span>Mesures</span>
-            <img style="margin-left: 5px; margin-right: 5px;" id="sbLogo" src="../assets/measure.svg"
-              alt="mesure"></img>
-            <span class="selected green">: {{ selectedMetric }}</span>      
+          <i class="fas fa-tachometer-alt mr-2"></i>
+          <span>Mesures</span>
+          <img style="margin-left: 5px; margin-right: 5px;" id="sbLogo" src="../assets/measure.svg" alt="mesure"></img>
+          <span class="selected green">: {{ selectedMetric }}</span>
           <i class="fas fa-chevron-down ml-2"></i>
         </button>
         <Transition>
-        <div v-if="isMeasureDropdownOpen" class="absolute gridContainer">         
-          <a v-for="ev in uniqueMetric" :key="ev" :value="ev" @click="selectMetric(ev)"
-            class=" green hover:bg-gray-600 ">{{ ev }}</a>
-        </div>
+          <div v-if="isMeasureDropdownOpen" class="absolute gridContainer">
+            <a v-for="ev in uniqueMetric" :key="ev" :value="ev" @click="selectMetric(ev)"
+              class=" green hover:bg-gray-600 ">{{ ev }}</a>
+          </div>
         </Transition>
       </div>
     </div>
@@ -258,9 +413,9 @@ export default {
         <option>Best/Worst Overall</option>
       </select>
 
-      <input v-model="displayMeanMedian" class="ml-4" type="checkbox" /> <span>Display Mean/Median?</span>
-      <input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" /><span>Display Significative</span>
-      difference only?
+      <input v-model="displayMeanMedian" class="ml-4" type="checkbox" /> <span>Display Mean</span>
+      <!--input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" /><span>Display Significative difference only?</span-->
+      
     </div>
     <!-- Placeholder for graph -->
     <div id="graph">
@@ -268,10 +423,32 @@ export default {
       <div id="chart">
 
       </div>
+      <br />
+       <div class="flex">
+         <div class="detailsBox"></div>
+         <div id="legendBox"></div> 
+       </div>
     </div>
   </div>
 </template>
 <style>
+#details,
+.detailsBox {
+  border: 1px solid white;
+  width: 300px;
+  height: 80px;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#legendBox {
+  border: 1px solid white;
+  width: 500px;
+  height: 80px;
+  color: white;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 option {
   color: black
 }
