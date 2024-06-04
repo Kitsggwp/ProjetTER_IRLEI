@@ -82,9 +82,9 @@ const DisplayMethod = (section, event) => {
 
   <div class="bg-gray-700 p-5 rounded-lg">
     Gestion des utilisateurs
-    <div class="bg-gray-800">
+    <div class="manageUser">
 
-      <div class="bg-gray-600">
+      <div class="manageUser">
         <button @click="DisplayMethod('user', 'displayAccountCreation')" class="cursor-pointer">Créer un
           utilisateur</button>
         <button @click="DisplayMethod('user', 'displayUserEditForm')" class="cursor-pointer">Modifier un
@@ -95,7 +95,7 @@ const DisplayMethod = (section, event) => {
           utilisateurs</button>
       </div>
       <Transition>
-        <div v-if="displayAccountCreation">
+        <div v-if="displayAccountCreation" >
           <form @submit.prevent="submitFormRegister">
             <input type="text" placeholder="Nom d'utilisateur" v-model="username" required>
             <input type="text" placeholder="Mot de passe" v-model="password" required>
@@ -111,7 +111,7 @@ const DisplayMethod = (section, event) => {
           </form>
           <br />
           Log :
-          <div class="bg-gray-800" id="console">
+          <div style="background-color: #110618" id="console">
             {{ consoleAccountCreationMessage }}
           </div>
         </div>
@@ -191,9 +191,9 @@ const DisplayMethod = (section, event) => {
 
     </div>
     Gestion des systèmes
-    <div class="bg-gray-800">
+    <div class="manageSystem">
 
-      <div class="bg-gray-600">
+      <div>
         <button @click="DisplayMethod('system', 'displayFileInput')" class="cursor-pointer">Ajouter / Mettre à jour des
           fichiers d'évaluations</button>
         <button @click="DisplayMethod('system', 'displayFileDelete')" class="cursor-pointer">Retirer un système</button>
@@ -213,7 +213,7 @@ const DisplayMethod = (section, event) => {
         <!--Console-->
         <br />
         Log :
-        <div class="bg-gray-800" id="console">
+        <div style="background-color: #040D05;" id="console">
           {{ consoleaddsystemMessage }}
         </div>
       </div>
@@ -253,9 +253,9 @@ const DisplayMethod = (section, event) => {
     </div>
 
     Gestion des teams
-    <div class="bg-gray-800">
+    <div class="manageTeam">
 
-      <div class="bg-gray-600">
+      <div class="manageTeam">
         <button @click="DisplayMethod('team', 'displayTeamInput')" class="cursor-pointer">Ajouter une team</button>
         <button @click="DisplayMethod('team', 'displayTeamDelete')" class="cursor-pointer">Retirer une team</button>
         <button @click="DisplayMethod('team', 'displayTeam')" class="cursor-pointer">Visualiser les teams</button>
@@ -269,7 +269,7 @@ const DisplayMethod = (section, event) => {
         <!--Console-->
         <br />
         Log :
-        <div class="bg-gray-800" id="console">
+        <div style="background-color: #160C00" id="console">
           {{ consoleaddteamMessage }}
         </div>
       </div>
@@ -285,7 +285,7 @@ const DisplayMethod = (section, event) => {
         <!--Console-->
         <br />
         Log :
-        <div class="bg-gray-800" id="console">
+        <div id="console">
           {{ consoledeleteteamMessage }}
         </div>
       </div>
@@ -658,10 +658,24 @@ export default {
 };
 </script>
 <style>
+
+.manageUser{
+  background-color: #37203D;
+}
+.manageSystem{
+  background-color: #203D32;
+}
+.manageTeam{
+  background-color: #946453;
+}
+
 table th {
   color: white;
   font-weight: bold;
   /* Changer la couleur du texte en noir */
+}
+button:hover , select:hover {
+  font-weight: bold;
 }
 
 table tr {
