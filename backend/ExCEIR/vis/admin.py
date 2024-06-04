@@ -1,3 +1,6 @@
+"""
+This module allows you to specify the database tables visible in the django admin page"""
+
 from django.contrib import admin
 from .models import Query
 from .models import Eval

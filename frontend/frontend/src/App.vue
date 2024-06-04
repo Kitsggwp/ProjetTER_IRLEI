@@ -81,8 +81,9 @@ const toggleDropdown = () => {
           <img src="./assets/system.svg" id="sbLogo"></img>
           <span>Systèmes</span>
         </a>
-        <a  @click="setCurrentComponent('Manage')" 
-          class="flex items-center text-gray-300 hover:text-white" href="#"> <!--v-if="user.length > 1"-->
+        <a v-if="user && user.length > 0 && (user[0].is_superuser || user.length > 1)"
+          @click="setCurrentComponent('Manage')" class="flex items-center text-gray-300 hover:text-white" href="#">
+          <!--v-if="user.length > 1"-->
           <img src="./assets/settings.svg" id="sbLogo"></img>
           <span>Settings</span>
         </a>
@@ -185,7 +186,8 @@ select {
   left: 40%;
   top: 40%;
 }
-option{
+
+option {
   background-color: #1E2836;
   color: white;
 }
@@ -205,11 +207,12 @@ option{
 }
 
 .gridContainer {
-  
+
   display: grid;
-  grid-template-columns: repeat(3, minmax(150px, 1fr)); /* Adjust the minmax value to fit your needs */
+  grid-template-columns: repeat(3, minmax(150px, 1fr));
+  /* Adjust the minmax value to fit your needs */
   padding: 10px;
- 
+
 }
 
 #profilDiv>a,
@@ -428,6 +431,7 @@ img {
 body {
   line-height: inherit;
 }
+
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.15s ease;
@@ -610,7 +614,7 @@ export default {
 
     // récupère les données du user connecté et les met dans la variable user
     getUser() {
-      axios.get('api/user', {
+      axios.get('api/user/', {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`
         }

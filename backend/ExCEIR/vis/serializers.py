@@ -6,6 +6,9 @@ from djoser.serializers import UserCreateSerializer
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
+    """
+    Serializer for the user table
+    """
     team = serializers.CharField(max_length=100, allow_blank=True, required=False)
     info = serializers.CharField(max_length=100, allow_blank=True, required=False)
 
@@ -15,6 +18,9 @@ class CustomUserCreateSerializer(UserCreateSerializer):
         extra_kwargs = {'password': {'write_only': True}}
 
     def update(self, instance, validated_data):
+        """
+        Method which overrides that of the ModelSerializer to be able to update a user without necessarily changing the password
+        """
         instance.username = validated_data.get('username', instance.username)
         instance.is_superuser = validated_data.get('is_superuser', instance.is_superuser)
         if 'password' in validated_data:
@@ -27,12 +33,18 @@ class CustomUserCreateSerializer(UserCreateSerializer):
 
 
 class EvalSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the eval table
+     """
     class Meta:
         model = Eval
         fields = '__all__'
 
 
 class TeamSerializer(serializers.ModelSerializer):
+    """
+    Serializer for the team table
+    """
     class Meta:
         model = Team
         fields = '__all__'

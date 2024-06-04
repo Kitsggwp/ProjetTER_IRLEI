@@ -1,3 +1,6 @@
+"""
+This module allows you to configure the database tables."""
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.contrib.auth.models import AbstractUser
@@ -16,6 +19,9 @@ class Query(models.Model):
 
 
 class Team(models.Model):
+    """
+    Model for the team table
+    """
     name = models.CharField(max_length=100, primary_key=True)
     info = models.CharField(max_length=100, default="null")
 
@@ -24,6 +30,9 @@ class Team(models.Model):
 
 
 class CustomUser(AbstractUser):
+    """
+    Model for the user table
+    """
     team = models.CharField(max_length=100, default="null", null=True, blank=True)
     info = models.CharField(max_length=100, default="null", null=True, blank=True)
 
@@ -32,6 +41,9 @@ class CustomUser(AbstractUser):
 
 
 class Eval(models.Model):
+    """
+    Model for the eval table
+    """
     System_id = models.CharField(max_length=100, default="null")
     System_collection = models.CharField(max_length=100, default="null", null=True, blank=True)
     Round = models.CharField(max_length=100, default="null")
@@ -41,6 +53,9 @@ class Eval(models.Model):
     Team = models.ForeignKey(Team, on_delete=models.CASCADE, to_field='name')  # Utilise le champ 'name' comme clé étrangère
 
     class Meta:
+        """
+        Fields 'System_id', 'Round', 'Query', 'Metric' must be unique
+        """
         unique_together = (('System_id', 'Round', 'Query', 'Metric'),)   # contrainte d'unicité
 
     def __str__(self):

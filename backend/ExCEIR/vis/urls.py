@@ -1,3 +1,5 @@
+"""This module allows you to redirect requests from the rest api to the appropriate view"""
+
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from . import views

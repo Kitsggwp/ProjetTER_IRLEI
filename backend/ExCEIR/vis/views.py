@@ -44,16 +44,25 @@ User = get_user_model()
 
 
 class UserListView(generics.ListAPIView):
+    """
+    Returns the list of users
+    """
     queryset = User.objects.all()
     serializer_class = CustomUserCreateSerializer
 
 
 class CustomUserCreateView(UserViewSet):
+    """
+    Class which manages API calls on the users table
+    """
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserCreateSerializer
 
     @action(detail=False, methods=['delete'], url_path='bulk-delete')
     def bulk_delete(self, request):
+        """
+        Retrieve the user id to delete it from the database
+        """
         user_ids = request.data.get('ids', [])
         if not user_ids:
             return Response({"error": "No IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
@@ -63,6 +72,9 @@ class CustomUserCreateView(UserViewSet):
 
     @action(detail=True, methods=['put'], url_path='')
     def update_user(self, request, pk=None):
+        """
+        Retrieves user information to update in the database
+        """
         user = get_object_or_404(CustomUser, pk=pk)
         serializer = self.serializer_class(user, data=request.data, partial=True)
         print("data", request.data)
@@ -73,10 +85,16 @@ class CustomUserCreateView(UserViewSet):
 
 
 class EvalViewSet(viewsets.ModelViewSet):
+    """
+    Class which manages API calls on the eval table
+    """
     queryset = Eval.objects.all()
     serializer_class = EvalSerializer
 
     def create(self, request):
+        """
+        Retrieves eval information to create in the database
+        """
         data = request.data  # Données envoyées depuis le frontend
         for eval_data in data:
             System_id = eval_data.get('System_id')
@@ -102,6 +120,9 @@ class EvalViewSet(viewsets.ModelViewSet):
                         status=status.HTTP_201_CREATED)
 
     def delete(self, request):
+        """
+        Retrieve the eval id to delete it from the database
+        """
         eval_ids = request.data.get('ids', [])
         if not eval_ids:
             return Response({"error": "No IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
@@ -111,45 +132,69 @@ class EvalViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['get'], url_path='average-values')
     def average_values(self, request):
-        query = request.query_params.get('query')
-        round = request.query_params.get('round')
+        """
+        Filters the table based on query, system, round(s), and metric to calculate the mean, standard deviation, median, max, and min.
+        """
+        queries = request.query_params.getlist('query')
+        rounds = request.query_params.getlist('round')
         metric = request.query_params.get('metric')
         system = request.query_params.get('system')
 
+        print(f"Queries: {queries}, Rounds: {rounds}, Metric: {metric}, System: {system}")
+
         queryset = Eval.objects.all()
 
-        if query:
-            queryset = queryset.filter(Query=query)
-        if round:
-            queryset = queryset.filter(Round=round)
+        if queries:
+            queryset = queryset.filter(Query__in=queries)
+        if rounds:
+            queryset = queryset.filter(Round__in=rounds)
         if metric:
             queryset = queryset.filter(Metric=metric)
         if system:
             queryset = queryset.filter(System_id=system)
 
+        print(f"Filtered queryset count: {queryset.count()}")
+
         values = queryset.values_list('Value', flat=True)
-        values = list(map(float, values))
+        # Convert values to float, ignoring non-numeric values
+        numeric_values = []
+        for value in values:
+            try:
+                numeric_values.append(float(value))
+            except ValueError:
+                continue
 
-        if not values:
-            return Response({"error": "No data found for the specified filters."}, status=status.HTTP_404_NOT_FOUND)
+        if not numeric_values:
+            return Response({"error": "No numeric data found for the specified filters."},
+                            status=status.HTTP_404_NOT_FOUND)
 
-        average_value = sum(values) / len(values)
-        median_value = np.median(values)
-        std_deviation = np.std(values)
+        average_value = sum(numeric_values) / len(numeric_values)
+        median_value = np.median(numeric_values)
+        std_deviation = np.std(numeric_values)
+        max_value = max(numeric_values)
+        min_value = min(numeric_values)
 
         return Response({
             "average_value": average_value,
             "median_value": median_value,
-            "std_deviation": std_deviation
+            "std_deviation": std_deviation,
+            "max_value": max_value,
+            "min_value": min_value
         }, status=status.HTTP_200_OK)
 
 
 class TeamViewSet(viewsets.ModelViewSet):
+    """
+    Class which manages API calls on the team table
+    """
     queryset = Team.objects.all()
     serializer_class = TeamSerializer
 
 
 def delete_eval_by_system(request):
+    """
+     Retrieve the system name to delete eval with this system_id from the database
+    """
     if request.method == 'POST':
         system_name = request.POST.get('system_name')
         Eval.objects.filter(System=system_name).delete()
