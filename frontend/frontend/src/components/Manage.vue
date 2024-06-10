@@ -81,36 +81,31 @@ const DisplayMethod = (section, event) => {
 <template>
 
   <div class="bg-gray-700 p-5 rounded-lg">
-    Gestion des utilisateurs
+    User Management
     <div class="manageUser">
 
       <div class="manageUser">
-        <button @click="DisplayMethod('user', 'displayAccountCreation')" class="cursor-pointer">Créer un
-          utilisateur</button>
-        <button @click="DisplayMethod('user', 'displayUserEditForm')" class="cursor-pointer">Modifier un
-          utilisateur</button>
-        <button @click="DisplayMethod('user', 'displayAccountDelete')" class="cursor-pointer">Supprimer un
-          utilisateur</button>
-        <button @click="DisplayMethod('user', 'displayAccount')" class="cursor-pointer">Visualiser les
-          utilisateurs</button>
+        <button @click="DisplayMethod('user', 'displayAccountCreation')" class="cursor-pointer">Create a user</button>
+        <button @click="DisplayMethod('user', 'displayUserEditForm')" class="cursor-pointer">Edit a user</button>
+        <button @click="DisplayMethod('user', 'displayAccountDelete')" class="cursor-pointer">Delete a user</button>
+        <button @click="DisplayMethod('user', 'displayAccount')" class="cursor-pointer">View users</button>
       </div>
       <Transition>
-        <div v-if="displayAccountCreation" >
+        <div v-if="displayAccountCreation">
           <form @submit.prevent="submitFormRegister">
-            <input type="text" placeholder="Nom d'utilisateur" v-model="username" required>
-            <input type="text" placeholder="Mot de passe" v-model="password" required>
-            <input type="text" placeholder="Description (optionnel)" v-model="userinfo">
+            <input type="text" placeholder="Username" v-model="username" required>
+            <input type="text" placeholder="Password" v-model="password" required>
+            <input type="text" placeholder="Description (optional)" v-model="userinfo">
             <select v-model="selectedUserTeam">
-              <option disabled value="">Sélectionnez une équipe</option>
+              <option disabled value="">Select a team</option>
               <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
-
             </select>
             <input type="checkbox" id="checkbox" v-model="is_superuser" />
-            <label for="checkbox">Administrateur : {{ is_superuser }}</label>
-            <button class="cursor-pointer" type="submit">Créer</button>
+            <label for="checkbox">Admin: {{ is_superuser }}</label>
+            <button class="cursor-pointer" type="submit">Create</button>
           </form>
           <br />
-          Log :
+          Log:
           <div style="background-color: #110618" id="console">
             {{ consoleAccountCreationMessage }}
           </div>
@@ -119,35 +114,35 @@ const DisplayMethod = (section, event) => {
 
       <div v-if="displayUserEditForm">
         <form @submit.prevent="updateUser">
-          <label for="useredit">User à modifier</label>
+          <label for="useredit">User to edit</label>
           <select id="useredit" v-model="selectedUserId" @change="loadUserData" required>
-            <option disabled value="">Sélectionnez un utilisateur</option>
+            <option disabled value="">Select a user</option>
             <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
           </select>
 
           <!-- Form to edit user details -->
           <div v-if="editedUser.id">
-            <input type="text" placeholder="Modifier username" v-model="editedUser.username" required>
-            <input type="password" placeholder="Modifier password" v-model="editedUser.password">
-            <input type="text" placeholder="Modifier description" v-model="editedUser.info">
+            <input type="text" placeholder="Edit username" v-model="editedUser.username" required>
+            <input type="password" placeholder="Edit password" v-model="editedUser.password">
+            <input type="text" placeholder="Edit description" v-model="editedUser.info">
 
-            <label for="team">Team :</label>
+            <label for="team">Team:</label>
             <select id="team" v-model="editedUser.team">
               <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
             </select>
 
             <input type="checkbox" id="checkbox" v-model="editedUser.is_superuser" />
-            <label for="checkbox">Administrateur : {{ editedUser.is_superuser }}</label>
-            <button type="submit">Enregistrer</button>
+            <label for="checkbox">Admin: {{ editedUser.is_superuser }}</label>
+            <button type="submit">Save</button>
             <div>
-              Ne rien mettre dans password si vous ne voulez pas le modifier.
+              Leave password field empty if you do not want to change it.
             </div>
           </div>
 
         </form>
 
         <br />
-        Log :
+        Log:
         <div class="bg-gray-800" id="console">
           {{ consoleEditUserMessage }}
         </div>
@@ -156,13 +151,13 @@ const DisplayMethod = (section, event) => {
       <div v-if="displayAccountDelete">
         <form @submit.prevent="deleteUserById">
           <select v-model="selectedUser" required>
-            <option disabled value="">Sélectionnez un utilisateur</option>
+            <option disabled value="">Select a user</option>
             <option v-for="user in users" :key="user.id" :value="user.id">{{ user.username }}</option>
           </select>
-          <button class="cursor-pointer" type="submit">Supprimer</button>
+          <button class="cursor-pointer" type="submit">Delete</button>
         </form>
         <br />
-        Log :
+        Log:
         <div class="bg-gray-800" id="console">
           {{ consoleDeleteAccountMessage }}
         </div>
@@ -190,29 +185,43 @@ const DisplayMethod = (section, event) => {
       </div>
 
     </div>
-    Gestion des systèmes
+    System Management
     <div class="manageSystem">
 
       <div>
-        <button @click="DisplayMethod('system', 'displayFileInput')" class="cursor-pointer">Ajouter / Mettre à jour des
-          fichiers d'évaluations</button>
-        <button @click="DisplayMethod('system', 'displayFileDelete')" class="cursor-pointer">Retirer un système</button>
-        <button @click="DisplayMethod('system', 'displayFile')" class="cursor-pointer">Visualiser les systèmes</button>
+        <button @click="DisplayMethod('system', 'displayFileInput')" class="cursor-pointer">Add / Update evaluation
+          files</button>
+        <button @click="DisplayMethod('system', 'displayFileDelete')" class="cursor-pointer">Remove a system</button>
+        <button @click="DisplayMethod('system', 'displayFile')" class="cursor-pointer">View systems</button>
       </div>
       <div v-if="displayFileInput">
         <form @submit.prevent="submitFormAddEval">
-          <input type="file" directory webkitdirectory required>
+          <div>
+            Step 1: Select the directory with directory rounds inside, ensuring the directory names match the round
+            names and contain
+            the evaluation files</div>
+          <label for="directory-input" class="custom-button">
+            {{ buttonText }}
+          </label>
+          <input id="directory-input" type="file" @change="handleFileChange" webkitdirectory required
+            class="custom-file-input">
           <br />
+          <div>
+            Step 2: Select the team associated with the systems you have added</div>
           <select v-model="selectedTeam" required>
-            <option disabled value="">Sélectionnez une équipe</option>
+            <option disabled value="">Select a team</option>
             <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
           </select>
+          <div> Step 3: If your systems belong to the same "family", you can name them here (optional)</div>
           <input type="text" placeholder="System collection" v-model="systemcollection">
-          <button class="cursor-pointer" type="submit">Créer</button>
+          <br>
+          -------------------------
+          <br>
+          <button class="cursor-pointer" type="submit">Create</button>
         </form>
         <!--Console-->
         <br />
-        Log :
+        Log:
         <div style="background-color: #040D05;" id="console">
           {{ consoleaddsystemMessage }}
         </div>
@@ -221,14 +230,15 @@ const DisplayMethod = (section, event) => {
       <div v-if="displayFileDelete">
         <form @submit.prevent="deleteEvalBySystem">
           <select v-model="selectedSystem" required>
-            <option disabled value="">Sélectionnez un système</option>
-            <option v-for="ev in uniqueSystems" :key="ev" :value="ev">{{ ev }}</option>
+            <option disabled value="">Select a system</option>
+            <option value="">Deleted all systems</option>
+            <option v-for="ev in uniqueSystems" :key="ev" :value="ev">{{ ev.System_id }} / {{ ev.Team }}</option>
           </select>
-          <button type="submit">Supprimer</button>
+          <button type="submit">Delete</button>
         </form>
         <!--Console-->
         <br />
-        Log :
+        Log:
         <div class="bg-gray-800" id="console">
           {{ consoledeletesystemMessage }}
         </div>
@@ -243,33 +253,31 @@ const DisplayMethod = (section, event) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(system, index) in uniqueSystems" :key="index">
-              <td>{{ system.System_id }}</td>
-              <td>{{ system.Team }}</td>
+            <tr v-for="(ev, index) in uniqueSystems" :key="index">
+              <td>{{ ev.System_id }}</td>
+              <td>{{ ev.Team }}</td>
             </tr>
           </tbody>
         </table>
       </div>
-    </div>
 
-    Gestion des teams
+    </div>
+    Team Management
     <div class="manageTeam">
 
-      <div class="manageTeam">
-        <button @click="DisplayMethod('team', 'displayTeamInput')" class="cursor-pointer">Ajouter une team</button>
-        <button @click="DisplayMethod('team', 'displayTeamDelete')" class="cursor-pointer">Retirer une team</button>
-        <button @click="DisplayMethod('team', 'displayTeam')" class="cursor-pointer">Visualiser les teams</button>
+      <div>
+        <button @click="DisplayMethod('team', 'displayTeamInput')" class="cursor-pointer">Create a team</button>
+        <button @click="DisplayMethod('team', 'displayTeamDelete')" class="cursor-pointer">Delete a team</button>
+        <button @click="DisplayMethod('team', 'displayTeam')" class="cursor-pointer">View teams</button>
       </div>
       <div v-if="displayTeamInput">
         <form @submit.prevent="addTeam">
-          <input type="text" placeholder="Name" v-model="teamname">
-          <input type="text" placeholder="Info" v-model="teaminfo">
-          <button class="cursor-pointer" type="submit">Créer</button>
+          <input type="text" placeholder="Team name" v-model="teamname" required>
+          <button type="submit">Create</button>
         </form>
-        <!--Console-->
         <br />
-        Log :
-        <div style="background-color: #160C00" id="console">
+        Log:
+        <div class="bg-gray-800" id="console">
           {{ consoleaddteamMessage }}
         </div>
       </div>
@@ -277,15 +285,14 @@ const DisplayMethod = (section, event) => {
       <div v-if="displayTeamDelete">
         <form @submit.prevent="deleteTeamById">
           <select v-model="team" required>
-            <option disabled value="">Sélectionnez une team</option>
+            <option disabled value="">Select a team</option>
             <option v-for="team in teams" :key="team.name" :value="team.name">{{ team.name }}</option>
           </select>
-          <button class="cursor-pointer" type="submit">Supprimer</button>
+          <button type="submit">Delete</button>
         </form>
-        <!--Console-->
         <br />
-        Log :
-        <div id="console">
+        Log:
+        <div class="bg-gray-800" id="console">
           {{ consoledeleteteamMessage }}
         </div>
       </div>
@@ -294,23 +301,19 @@ const DisplayMethod = (section, event) => {
         <table>
           <thead>
             <tr>
-              <th>Team</th>
-              <th>Info</th>
+              <th>Team Name</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(team, index) in teams" :key="index">
               <td>{{ team.name }}</td>
-              <td>{{ team.info }}</td>
             </tr>
           </tbody>
         </table>
       </div>
+
     </div>
   </div>
-
-
-
 </template>
 
 <script>
@@ -342,6 +345,7 @@ export default {
       selectedUserId: '', // ID de l'utilisateur sélectionné
       editedUser: {}, // Données de l'utilisateur en cours d'édition
       teamname: '',
+      buttonText: "Select Directory",
     };
   },
   created() {
@@ -364,6 +368,16 @@ export default {
 
   },
   methods: {
+    handleFileChange(event) {
+      const files = event.target.files;
+      console.log("Files selected:", files); // Vérifiez si cette ligne s'affiche dans la console
+      if (files.length > 0) {
+        this.buttonText = `${files.length} files selected`;
+      } else {
+        this.buttonText = "Select Directory";
+      }
+      console.log("Button text updated to:", this.buttonText); // Vérifiez si cette ligne s'affiche dans la console
+    },
 
     loadUserData() {
       const user = this.users.find(user => user.id === this.selectedUserId);
@@ -386,7 +400,7 @@ export default {
 
           this.$router.push('/')
           console.log(response)
-          this.consoleAccountCreationMessage = "Opération réussie"
+          this.consoleAccountCreationMessage = "Successful operation"
           this.getUsers()
         })
         .catch(error => {
@@ -404,6 +418,7 @@ export default {
         .then(userResponse => {
           // Traiter les informations de l'utilisateur ici
           this.users = userResponse.data
+          this.$store.commit('setUser', userResponse.data)
           console.log(userResponse.data);
 
         })
@@ -424,16 +439,13 @@ export default {
         .then(response => {
           //console.log(response.data.message);
           this.getUsers()
-          this.consoleDeleteAccountMessage = "Opération réussie"
+          this.consoleDeleteAccountMessage = "Successful operation"
           // Mettez à jour votre interface utilisateur si nécessaire
         })
         .catch(error => {
           console.error(error);
           this.consoleAccountCreationMessage = error
         });
-
-
-
     },
 
     updateUser() {
@@ -453,7 +465,7 @@ export default {
       }).then(response => {
         console.log(response.data);
         this.getUsers()
-        this.consoleEditUserMessage = "Opération réussie"
+        this.consoleEditUserMessage = "Successful operation"
         // Traitez la réponse ici, mettez à jour l'interface utilisateur si nécessaire
       }).catch(error => {
         console.error(error);
@@ -471,6 +483,7 @@ export default {
       })
         .then(response => {
           this.teams = response.data
+          this.$store.commit('setTeams', response.data)
           console.log(response.data);
         })
         .catch(error => {
@@ -487,7 +500,7 @@ export default {
 
         .then(response => {
 
-          this.consoleaddteamMessage = "Opération réussie"
+          this.consoleaddteamMessage = "Successful operation"
           this.getTeam()
 
 
@@ -506,7 +519,7 @@ export default {
           'Authorization': `Token ${this.$store.state.token}`,
         }
       }).then(response => {
-        this.consoledeleteteamMessage = "Opération réussie"
+        this.consoledeleteteamMessage = "Successful operation"
         this.getTeam(); // Refresh the team list after deletion
       }).catch(error => {
         this.consoledeleteteamMessage = error
@@ -525,7 +538,7 @@ export default {
         .then(response => {
 
           this.evals = response.data
-
+          this.$store.commit('setEvals', response.data)
           const uniqueSystems = Array.from(
             new Map(response.data.map(item => [item.System_id, { System_id: item.System_id, Team: item.Team }])).values()
           );
@@ -551,13 +564,13 @@ export default {
 
         .then(response => {
 
-          this.consoleaddsystemMessage = "Opération réussie : " + response.data.message;
+          this.consoleaddsystemMessage = "Successful operation : " + response.data.message;
           this.getEval()
 
 
         })
         .catch(error => {
-          this.consoleaddsystemMessage = "Erreur : " + error;
+          this.consoleaddsystemMessage = "Error : " + error;
         });
 
     },
@@ -580,13 +593,13 @@ export default {
       })
         .then(response => {
           console.log(response);
-          this.consoledeletesystemMessage = "Opération réussie";
+          this.consoledeletesystemMessage = "Successful operation : " + response.data.message;
           this.getEval()
 
         })
         .catch(error => {
           console.error(error);
-          this.consoledeletesystemMessage = "Erreur : " + error;
+          this.consoledeletesystemMessage = "Error : " + error;
         });
 
 
@@ -596,34 +609,46 @@ export default {
     //Upload
     processEvalFile(file) {
       return new Promise((resolve, reject) => {
-        const roundMatch = file.webkitRelativePath.match(/\/([^/]+)_round/);
-        const round = roundMatch ? roundMatch[1] : null;
-        let system = 0;
+        // Utilisation de l'expression régulière pour capturer le nom complet du dossier contenant le fichier
+        const folderMatch = file.webkitRelativePath.match(/\/([^/]+)\/[^/]+$/);
+        const round = folderMatch ? folderMatch[1].trim() : null;  // Nom du dossier parent immédiat
+        // Utiliser le nom du fichier comme valeur pour le système avant le premier point
+        const systemMatch = file.name.match(/^([^\.]+)/);
+        const system = systemMatch ? systemMatch[1].trim() : file.name.trim();
+
         const reader = new FileReader();
         reader.onload = (event) => {
           const content = event.target.result;
           const lines = content.split('\n');
-          for (const line of lines) {
-            const parts = line.trim().split('\t');
-            if (parts.length === 3) {
-              const metric = parts[0];
-              const value = parts[2];
-              if (metric === "runid") {
-                system = value;
-              }
-            }
-          }
+
+          /*  for (const line of lines) {
+             const parts = line.trim().split('\t');
+             if (parts.length === 3) {
+               const metric = parts[0];
+               const value = parts[2];
+               if (metric === "runid") {
+                 system = value;
+               }
+             }
+           } */
           for (const line of lines) {
             const parts = line.trim().split('\t');
             if (parts.length === 3) {
               if (parts[0] !== "num_ret" && parts[0] !== "num_rel" && parts[0] !== "num_rel_ret") {
-                const metric = parts[0];
-                const query = parts[1];
-                const value = parts[2];
-                const newEval = { System_collection: this.systemcollection, Team: this.selectedTeam, System_id: system, Round: round, Query: query, Metric: metric, Value: value };
+                const metric = parts[0].trim();
+                const query = parts[1].trim();
+                const value = parts[2].trim();
+                const newEval = {
+                  System_collection: this.systemcollection,
+                  Team: this.selectedTeam,
+                  System_id: system,
+                  Round: round,
+                  Query: query,
+                  Metric: metric,
+                  Value: value
+                };
                 this.allNewEvals.push(newEval);
               }
-
             }
           }
           resolve(); // Résoudre la promesse une fois que toutes les opérations sont terminées
@@ -631,6 +656,7 @@ export default {
         reader.readAsText(file);
       });
     },
+
 
 
     submitFormAddEval(event) {
@@ -652,20 +678,18 @@ export default {
   },
 
 
-
-
-
 };
 </script>
 <style>
-
-.manageUser{
+.manageUser {
   background-color: #37203D;
 }
-.manageSystem{
+
+.manageSystem {
   background-color: #203D32;
 }
-.manageTeam{
+
+.manageTeam {
   background-color: #946453;
 }
 
@@ -674,7 +698,9 @@ table th {
   font-weight: bold;
   /* Changer la couleur du texte en noir */
 }
-button:hover , select:hover {
+
+button:hover,
+select:hover {
   font-weight: bold;
 }
 
@@ -700,5 +726,25 @@ option {
 .v-enter-from,
 .v-leave-to {
   opacity: 0;
+}
+
+.custom-file-input {
+  display: none;
+}
+
+.custom-button {
+  display: inline-block;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  text-align: center;
+}
+
+.custom-button:hover {
+  background-color: #0056b3;
 }
 </style>

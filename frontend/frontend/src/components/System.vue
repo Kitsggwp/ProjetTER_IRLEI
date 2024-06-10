@@ -3,47 +3,71 @@ import MultiSelect from 'primevue/multiselect';
 </script>
 
 <template>
+
+
   <div class="bg-gray-700 p-5 rounded-lg framed">
     <div class="flex justify-between items-center mb-5">
-      <div class="subtitle">Tableau des systèmes</div>
+      <div class="subtitle">Systems table</div>
+
     </div>
     <div class="flex mb-5">
-      System :
-      <select v-model="selectedSystem" class="mr-2 p-2" @change="fetchMetricsData">
-        <option value="">Sélectionner un système</option>
-        <option v-for="system in uniqueSystems" :key="system" :value="system.System_id">{{ system.System_id + " / " +
-        system.Team }}</option>
-      </select>
-      Rounds :
-      <MultiSelect v-model="selectedRound" :maxSelectedLabels="5" display="chip" :options="uniqueRounds"
-        placeholder="Select Rounds" class="w-full md:w-20rem" @change="fetchMetricsData" />
-      Queries :
-      <MultiSelect v-model="selectedQuery" :maxSelectedLabels="5" display="chip" :options="uniqueQueries"
-        placeholder="Select Queries" class="w-full md:w-20rem" @change="fetchMetricsData" />
+
+      <div>
+        System :
+        <select v-model="selectedSystem" class="mr-2 p-2" @change="getRoundbySystemSelected">
+          <option value="">Select System</option>
+          <option v-for="system in uniqueSystems" :key="system" :value="system.System_id">{{ system.System_id + " / " +
+          system.Team }}</option>
+        </select>
+      </div>
+      <div v-if="selectedSystem">
+        Round :
+        <select v-model="selectedRound" class="mr-2 p-2" @change="getQueryandMetricbySystemandRoundselected">
+          <option value="">Select Round</option>
+          <option v-for="round in uniqueRounds" :key="round" :value="round">{{ round }}</option>
+        </select>
+      </div>
+      <div v-if="selectedRound">
+        Queries :
+        <MultiSelect v-model="selectedQuery" :maxSelectedLabels="3" display="chip" selectedItemsLabel
+          :options="uniqueQueries" placeholder="Select Queries" filter class="w-full md:w-20rem"
+          @change="fetchMetricsData" />
+        <div>
+          {{ this.selectedQuery.length }} queries selected.
+        </div>
+
+      </div>
     </div>
     <div>
     </div>
+    <div class="message" v-if="selectedQuery.length === 0 && selectedRound.length > 0">Select at least one query !</div>
     <table class="table-auto w-full bg-white">
       <thead>
         <tr>
-          <th>Métrique</th>
-          <th>Valeur moyenne pour le système sélectionné</th>
-          <th>Valeur maximum sur tous les systèmes</th>
-          <th>Valeur minimum sur tous les systèmes</th>
-          <th>Moyenne sur tous les systèmes</th>
-          <th>Médiane sur tous les systèmes</th>
-          <th>Écart type sur tous les systèmes</th>
+          <th>Metric</th>
+          <th>Average value for the selected system</th>
+          <th>Average on all systems</th>
+          <th>Maximum value on all systems</th>
+          <th>Minimum value on all systems</th>
+          <th>Median on all systems</th>
+          <th>Standard deviation on all systems</th>
         </tr>
       </thead>
       <tbody>
         <tr v-for="metric in metricsData" :key="metric.name">
-          <td :class="getMetricClass(metric)"
-            title="Le nom s'affiche en rouge si il est inférieur à la moyenne, en vert si il est supérieur, en blanc si il est égale.">
-            {{ metric.name }}</td>
+          <td
+            title="
+If the average value of the selected system is higher than that of all systems then there is a green arrow otherwise if it is lower a red arrow if it equals nothing">
+            {{ metric.name }}
+            <span
+              :class="{ 'text-green-500': metric.selected_value > metric.average_value, 'text-red-500': metric.selected_value < metric.average_value }">
+              {{ getMetricIcon(metric) }}
+            </span>
+          </td>
           <td>{{ metric.selected_value }}</td>
+          <td>{{ metric.average_value }}</td>
           <td>{{ metric.max_value }}</td>
           <td>{{ metric.min_value }}</td>
-          <td>{{ metric.average_value }}</td>
           <td>{{ metric.median_value }}</td>
           <td>{{ metric.std_deviation }}</td>
         </tr>
@@ -70,17 +94,20 @@ export default {
       uniqueRounds: [],
       uniqueQueries: [],
       UniqueMetrics: [],
-      metricsData: []
+      metricsData: [],
+      filteredEvals: '',
     };
   },
   computed: {
-    ...mapState(['token'])
+    ...mapState(['token']),
+    ...mapState(['evals']),
+
   },
   created() {
-    this.getEval();
-    //this.getAverage('', '4', '2', 'map');
+    this.getSystem();
   },
   methods: {
+    // 
     async getAverage(system, query, round, metric) {
       try {
         const response = await axios.get('/api/eval/average-values/', {
@@ -112,41 +139,54 @@ export default {
         console.error(error);
       }
     },
-    async getEval() {
-      try {
-        const response = await axios.get('/api/eval/', {
-          headers: {
-            'Authorization': `Token ${this.token}`
-          }
-        });
-        this.evals = response.data;
+    async getSystem() {
+      const evals = this.evals;
+      console.log(evals)
+      // Extraire les systèmes uniques des évaluations filtrées
+      const uniqueSystems = Array.from(new Map(evals.map(item => [item.System_id, { System_id: item.System_id, Team: item.Team }])).values());
+      this.uniqueSystems = uniqueSystems;
+    },
+    async getRoundbySystemSelected() {
+      // Filtrer les évaluations en fonction du système sélectionné
+      const filteredEvals = this.evals.filter(evaluation => evaluation.System_id === this.selectedSystem);
+      this.filteredEvals = filteredEvals
+      // Extraire les rounds uniques des évaluations filtrées
+      const uniqueRounds = [...new Set(filteredEvals.map(ev => ev.Round))];
+      this.uniqueRounds = uniqueRounds;
 
+      this.selectedQuery = []
 
-        const uniqueSystems = Array.from(
-          new Map(response.data.map(item => [item.System_id, { System_id: item.System_id, Team: item.Team }])).values()
-        );
-        this.uniqueSystems = uniqueSystems;
-        const uniqueRounds = [...new Set(response.data.map(ev => ev.Round))];
-        this.uniqueRounds = uniqueRounds;
-        let uniqueQueries = [...new Set(response.data.map(ev => ev.Query))];
-        uniqueQueries = uniqueQueries.filter((metric) => metric !== 'all')
-        this.uniqueQueries = uniqueQueries;
-        let UniqueMetrics = [...new Set(response.data.map(ev => ev.Metric))];
-        UniqueMetrics = UniqueMetrics.filter((metric) => metric !== 'runid')
-        this.UniqueMetrics = UniqueMetrics;
-      } catch (error) {
-        console.error(error);
-      }
+    },
+    async getQueryandMetricbySystemandRoundselected() {
+      /*  try {
+         const response = await axios.get('/api/eval/', {
+           headers: {
+             'Authorization': `Token ${this.token}`
+           }
+         });
+         this.evals = response.data; */
+      const filteredEvalsandrounds = this.filteredEvals.filter(evaluation => evaluation.Round === this.selectedRound);
+
+      // Extraire les requêtes uniques des évaluations filtrées
+      let uniqueQueries = [...new Set(filteredEvalsandrounds.map(ev => ev.Query))];
+      uniqueQueries = uniqueQueries.filter((metric) => metric !== 'all')
+      this.uniqueQueries = uniqueQueries;
+
+      // Extraire les metrics uniques des évaluations filtrées
+      let uniqueMetrics = [...new Set(filteredEvalsandrounds.map(ev => ev.Metric))];
+      uniqueMetrics = uniqueMetrics.filter((metric) => metric !== 'runid')
+      uniqueMetrics = uniqueMetrics.filter((metric) => metric !== 'num_q')
+      uniqueMetrics = uniqueMetrics.filter((metric) => metric !== 'gm_map')
+      this.uniqueMetrics = uniqueMetrics;
+      this.selectedQuery = []
+      console.log(uniqueQueries);
     },
     async fetchMetricsData() {
-      if (this.selectedSystem) {
+      if (this.selectedSystem && this.selectedRound && this.selectedQuery.length !== 0) {
+        console.log(this.selectedQuery)
         const metricsData = [];
-        let UniqueMetricsFiltered = this.UniqueMetrics;
-        if (this.selectedQuery !== "") {
-          UniqueMetricsFiltered = UniqueMetricsFiltered.filter((metric) => metric !== 'num_q')
-          UniqueMetricsFiltered = UniqueMetricsFiltered.filter((metric) => metric !== 'gm_map')
-        }
-        for (const metric of UniqueMetricsFiltered) {
+
+        for (const metric of this.uniqueMetrics) {
           const dataforall = await this.getAverage("", this.selectedQuery, this.selectedRound, metric);
           const dataforonesystem = await this.getAverage(this.selectedSystem, this.selectedQuery, this.selectedRound, metric);
           metricsData.push({
@@ -162,15 +202,15 @@ export default {
         this.metricsData = metricsData;
       }
     },
-    getMetricClass(metric) {
+    getMetricIcon(metric) {
       if (metric.selected_value > metric.average_value) {
-        return 'text-green-500';
+        return '▲';
       } else if (metric.selected_value < metric.average_value) {
-        return 'text-red-500';
+        return '▼';
       } else {
-        return 'text-white';
+        return '';
       }
-    }
+    },
   }
 };
 </script>
@@ -197,5 +237,29 @@ export default {
 
 .text-white {
   color: white;
+}
+
+.p-multiselect-panel .p-multiselect-header {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+}
+
+.p-multiselect-header .p-checkbox {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.p-multiselect-header .p-checkbox:nth-of-type(1)::after {
+  content: "All";
+  position: absolute;
+  left: 30px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: bold;
+}
+
+.message {
+  color: red;
 }
 </style>

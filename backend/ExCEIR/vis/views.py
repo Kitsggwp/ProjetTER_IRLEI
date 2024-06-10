@@ -125,10 +125,11 @@ class EvalViewSet(viewsets.ModelViewSet):
         """
         eval_ids = request.data.get('ids', [])
         if not eval_ids:
-            return Response({"error": "No IDs provided."}, status=status.HTTP_400_BAD_REQUEST)
+            Eval.objects.all().delete()
+            return Response({"message": "All Evaluations deleted."}, status=status.HTTP_200_OK)
 
         Eval.objects.filter(id__in=eval_ids).delete()
-        return Response({"message": "Evaluations deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "Evaluations on this system deleted successfully."}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='average-values')
     def average_values(self, request):
@@ -143,17 +144,29 @@ class EvalViewSet(viewsets.ModelViewSet):
         print(f"Queries: {queries}, Rounds: {rounds}, Metric: {metric}, System: {system}")
 
         queryset = Eval.objects.all()
-
+        print(f"Filtered before queryset count: {queryset.count()}")
         if queries:
             queryset = queryset.filter(Query__in=queries)
+            print(f"Filtered queries queryset count: {queryset.count()}")
         if rounds:
+            print(
+                f"Available Metrics after filtering by queries: {queryset.values_list('Round', flat=True).distinct()}")
             queryset = queryset.filter(Round__in=rounds)
+            print(f"Filtered queries rounds queryset count: {queryset.count()}")
         if metric:
+            # Debugging: Print distinct metrics available after filtering by rounds and queries
+            print(
+                f"Available Metrics after filtering by rounds and queries: {queryset.values_list('Metric', flat=True).distinct()}")
+
             queryset = queryset.filter(Metric=metric)
+            print(metric)
+            print(f"Filtered queries rounds metric queryset count: {queryset.count()}")
         if system:
             queryset = queryset.filter(System_id=system)
+            print(f"Filtered all queryset count: {queryset.count()}")
 
         print(f"Filtered queryset count: {queryset.count()}")
+        print({queryset})
 
         values = queryset.values_list('Value', flat=True)
         # Convert values to float, ignoring non-numeric values
@@ -168,11 +181,11 @@ class EvalViewSet(viewsets.ModelViewSet):
             return Response({"error": "No numeric data found for the specified filters."},
                             status=status.HTTP_404_NOT_FOUND)
 
-        average_value = sum(numeric_values) / len(numeric_values)
-        median_value = np.median(numeric_values)
-        std_deviation = np.std(numeric_values)
-        max_value = max(numeric_values)
-        min_value = min(numeric_values)
+        average_value = round(sum(numeric_values) / len(numeric_values), 4)
+        median_value = round(np.median(numeric_values), 4)
+        std_deviation = round(np.std(numeric_values), 4)
+        max_value = round(max(numeric_values), 4)
+        min_value = round(min(numeric_values), 4)
 
         return Response({
             "average_value": average_value,

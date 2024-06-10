@@ -33,6 +33,8 @@ DJOSER = {
     }
 }
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 100000000
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',

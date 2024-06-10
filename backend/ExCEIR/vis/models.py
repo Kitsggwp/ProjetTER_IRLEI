@@ -58,6 +58,13 @@ class Eval(models.Model):
         """
         unique_together = (('System_id', 'Round', 'Query', 'Metric'),)   # contrainte d'unicité
 
+        indexes = [
+            models.Index(fields=['Round']),
+            models.Index(fields=['Query']),
+            models.Index(fields=['Metric']),
+            models.Index(fields=['System_id']),
+        ]
+
     def __str__(self):
         return str(self.System_id)
 
