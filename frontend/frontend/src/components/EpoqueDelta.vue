@@ -64,18 +64,27 @@ export default {
       const height = this.height - margin.top - margin.bottom;
 
       const filteredData = data
-        .filter(d => d.Metric === this.selectedMetric && (this.selectedRound === null || d.Round === this.selectedRound)&&d.Query===this.selectedQueries)
-        .sort((a, b) => d3.ascending(a.Round, b.Round))
-        .sort((a, b) => d3.descending(a.Value, b.Value));
+        .filter(d => d.Metric === this.selectedMetric && (this.selectedRound === null || d.Round === this.selectedRound) && d.Query === this.selectedQueries)
+        .sort((a, b) => d3.ascending(a.Round, b.Round));
 
+      // Calculer les valeurs min et max de la colonne Value
+      const [minValue, maxValue] = d3.extent(filteredData, d => d.Value);
       // Ajuster l'échelle de couleur
       const colorScale = d3.scaleQuantile()
-        .domain([0, 1])
+        .domain([minValue, maxValue])
         .range(d3.schemeSpectral[9]);
+
+      const groupedData = Array.from(
+        d3.group(filteredData, d => d.Round),
+        ([key, value]) => ({
+          Round: key,
+          Mean: d3.mean(value, d => d.Value)
+        })
+      );
 
       const svgElement = this.GroupedBarChart(filteredData, {
         x: d => d.Round,
-        y: d => d.Value,
+        y: d => d.Value - groupedData.find(group => group.Round === d.Round).Mean,
         z: d => d.System_id,
         marginTop: margin.top,
         marginRight: margin.right,
@@ -99,44 +108,48 @@ export default {
       d3.select("#legendBox").node().appendChild(legendElement);
 
       this.$watch('selectedMetric', (newMetric) => {
-        const newData = this.evals
-          .filter(d => d.Metric === newMetric && (this.selectedRound === null || d.Round === this.selectedRound)&&d.Query===this.selectedQueries)
-          .sort((a, b) => d3.ascending(a.Round, b.Round))
-          .sort((a, b) => d3.descending(a.Value, b.Value));
+  const newData = this.evals
+    .filter(d => d.Metric === newMetric && (this.selectedRound === null || d.Round === this.selectedRound) && d.Query === this.selectedQueries)
+    .sort((a, b) => d3.ascending(a.Round, b.Round));
 
-        const newSvgElement = this.GroupedBarChart(newData, {
-          x: d => d.Round,
-          y: d => d.Value,
-          z: d => d.System_id,
-          marginTop: margin.top,
-          marginRight: margin.right,
-          marginBottom: margin.bottom,
-          marginLeft: margin.left,
-          width: this.width,
-          height: this.height,
-          yLabel: 'Value',
-          div_name: '#chart',
-          test_system: 'test_system_id',
-          colorScale: colorScale
-        });
-        d3.select("#chart").selectAll("*").remove();
-        d3.select("#chart").node().appendChild(newSvgElement);
+  const [minValue, maxValue] = d3.extent(newData, d => d.Value); // Utiliser newData pour calculer min et max
 
-        // Update legend
-        const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
-        d3.select("#legendBox").selectAll("*").remove();
-        d3.select("#legendBox").node().appendChild(legendElement);
-      });
+  const newSvgElement = this.GroupedBarChart(newData, {
+    x: d => d.Round,
+    y: d => d.Value - d3.mean(newData, d => d.Value),
+    z: d => d.System_id,
+    marginTop: margin.top,
+    marginRight: margin.right,
+    marginBottom: margin.bottom,
+    marginLeft: margin.left,
+    width: this.width,
+    height: this.height,
+    yLabel: 'Value',
+    div_name: '#chart',
+    test_system: 'test_system_id',
+    colorScale: d3.scaleQuantile()
+      .domain([minValue, maxValue])
+      .range(d3.schemeSpectral[9])
+  });
+
+  d3.select("#chart").selectAll("*").remove();
+  d3.select("#chart").node().appendChild(newSvgElement);
+
+  // Update legend
+  const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
+  d3.select("#legendBox").selectAll("*").remove();
+  d3.select("#legendBox").node().appendChild(legendElement);
+});
+
 
       this.$watch('selectedRound', (newRound) => {
         const newData = this.evals
-          .filter(d => d.Metric === this.selectedMetric && (newRound === null || d.Round === newRound)&&d.Query===this.selectedQueries)
-          .sort((a, b) => d3.ascending(a.Round, b.Round))
-          .sort((a, b) => d3.descending(a.Value, b.Value));
+          .filter(d => d.Metric === this.selectedMetric && (newRound === null || d.Round === newRound) && d.Query === this.selectedQueries)
+          .sort((a, b) => d3.ascending(a.Round, b.Round));
 
         const newSvgElement = this.GroupedBarChart(newData, {
           x: d => d.Round,
-          y: d => d.Value,
+          y: d => d.Value - d3.mean(newData, d => d.Value),
           z: d => d.System_id,
           marginTop: margin.top,
           marginRight: margin.right,
@@ -188,17 +201,28 @@ export default {
       const Z = d3.map(data, z);
 
       if (xDomain === undefined) xDomain = X;
-      if (yDomain === undefined) yDomain = [d3.min(Y) < 0 ? d3.min(Y) : 0, d3.max(Y) < 0 ? 0 : d3.max(Y)];
+      if (yDomain === undefined) yDomain = [d3.min(Y), d3.max(Y)];
       if (zDomain === undefined) zDomain = Z;
       xDomain = new d3.InternSet(xDomain);
       zDomain = new d3.InternSet(zDomain);
 
       const I = d3.range(X.length).filter(i => xDomain.has(X[i]) && zDomain.has(Z[i]));
+      colorScale= d3.scaleQuantile()
+      .domain(yDomain)
+      .range(d3.schemeSpectral[9])
 
-      const xScale = d3.scaleBand(xDomain, xRange).paddingInner(xPadding);
-      const yScale = yType(yDomain, yRange);
+      const xScale = d3.scaleBand()
+        .domain(X)
+        .range(xRange)
+        .padding(xPadding);
+      const yScale = yType()
+        .domain(yDomain)
+        .range(yRange);
 
-      const xzScale = d3.scaleBand(zDomain, [0, xScale.bandwidth()]).padding(zPadding);
+      const xzScale = d3.scaleBand()
+        .domain(zDomain)
+        .range([0, xScale.bandwidth()])
+        .padding(zPadding);
       const color = colorScale;
 
       const svg = d3.create("svg")
@@ -209,7 +233,7 @@ export default {
 
       svg.append("g")
         .attr("transform", `translate(${marginLeft},0)`)
-        .call(d3.axisLeft(yScale).ticks(height / 60, yFormat))
+        .call(d3.axisLeft(yScale).ticks(height / 60).tickFormat(yFormat))
         .call(g => g.select(".domain").remove())
         .call(g => g.append("text")
           .attr("x", -marginLeft)
@@ -223,13 +247,14 @@ export default {
         .data(I)
         .join("rect")
         .attr("x", i => xScale(X[i]) + xzScale(Z[i]))
-        .attr("y", i => yScale(Y[i]))
+        .attr("y", i => yScale(Math.max(0, Y[i])))
         .attr("width", xzScale.bandwidth())
-        .attr("height", i => yScale(0) - yScale(Y[i]))
+        .attr("height", i => Math.abs(yScale(0) - yScale(Y[i])))
         .attr("fill", i => Z[i] === test_system ? '#ff0000' : color(Y[i]))
         .on("mouseover", function (event, d) {
+          const roundedValue = Y[d].toFixed(3);
           d3.select(".detailsBox")
-            .html(`<p>Round: ${X[d]}</p><p>Value: ${Y[d]}</p><p>System ID: ${Z[d]}</p>`)
+            .html(`<p>Round: ${X[d]}</p><p>Value: ${roundedValue}</p><p>System ID: ${Z[d]}</p>`)
             .style("display", "block");
         });
 
@@ -240,10 +265,9 @@ export default {
         .attr("transform", `translate(0,${height - marginBottom})`)
         .call(d3.axisBottom(xScale).tickSizeOuter(0));
 
-  
-
       return svg.node();
     },
+
     Legend(color, {
       title,
       tickSize = 6,
@@ -310,8 +334,7 @@ export default {
           .attr("y", marginTop)
           .attr("width", (d, i) => x(i) - x(i - 1))
           .attr("height", height - marginTop - marginBottom)
-          .attr("fill", d => d)
-          
+          .attr("fill", d => d);
 
         if (tickValues === undefined) tickValues = d3.range(thresholds.length);
         tickFormat = thresholdFormat;
@@ -350,7 +373,7 @@ export default {
   },
   mounted() {
     this.getEval();
-    
+    this.createChart(this.evals);
   }
 };
 </script>
@@ -400,7 +423,7 @@ export default {
       <div class="relative inline-block">
         <button @click="toggleMeasureDropdown" class="flex items-center bg-gray-800 text-white p-2 rounded">
           <i class="fas fa-tachometer-alt mr-2"></i>
-          <span>Metric</span>
+          <span>M</span>
           <img style="margin-left: 5px; margin-right: 5px;" id="sbLogo" src="../assets/measure.svg" alt="mesure"></img>
           <span class="selected green">: {{ selectedMetric }}</span>
           <i class="fas fa-chevron-down ml-2"></i>
@@ -422,7 +445,7 @@ export default {
 
       <input v-model="displayMeanMedian" class="ml-4" type="checkbox" /> <span>Display Mean</span>
       <!--input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" /><span>Display Significative difference only?</span-->
-      
+
     </div>
     <!-- Placeholder for graph -->
     <div id="graph">
@@ -431,10 +454,10 @@ export default {
 
       </div>
       <br />
-       <div class="flex">
-         <div class="detailsBox"></div>
-         <div id="legendBox"></div> 
-       </div>
+      <div class="flex">
+        <div class="detailsBox"></div>
+        <div id="legendBox"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -463,7 +486,6 @@ option {
 body {
   color: white
 }
-
 
 .v-enter-active,
 .v-leave-active {

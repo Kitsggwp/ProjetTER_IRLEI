@@ -6,6 +6,7 @@ import Query from './components/Query.vue';
 import System from './components/System.vue';
 import Profil from './components/Profil.vue';
 import Manage from './components/Manage.vue';
+import EpoqueDelta from './components/EpoqueDelta.vue';
 import axios from 'axios'
 const searchTerm = ref('');
 const isDropdownOpen = ref(false);
@@ -28,13 +29,14 @@ const toggleDropdown = () => {
 
 <template>
   <!-- Headbar -->
-
+  <title>IRLEI interface</title>
   <div class="bg-gray-900 headBar flex justify-between items-center">
-    <h1 id="title">Interface recherche</h1>
+    <h1 id="title">IRLEI</h1>
     <div class="flex">
-      <input v-model="searchTerm" class="bg-gray-700 p-2 rounded" placeholder="Chercher un système" type="text"
+      <!--
+      <input v-model="searchTerm" class="bg-gray-700 p-2 rounded" placeholder="Search un système" type="text"
         id="searchBar" />
-
+      -->
       <div v-if="isAuthenticated" class="inline-block relative">
         <!-- Contenu à afficher lorsque l'utilisateur est connecté -->
         <button class="ml-4 bg-gray-700 p-2 rounded" @click="toggleDropdown" id="profileButton">
@@ -50,7 +52,7 @@ const toggleDropdown = () => {
       <div v-else>
         <!-- Contenu à afficher lorsque l'utilisateur n'est pas connecté -->
         <button class="ml-4 bg-gray-700 p-2 rounded" @click="toggleDropdown" id="profileButton">
-          Se connecter
+          Log in 
           <i class="fas fa-chevron-down"></i>
           <img alt="Profile picture" id="pp" src="./assets/profile.png" />
         </button>
@@ -66,32 +68,41 @@ const toggleDropdown = () => {
   <!-- Sidebar -->
   <div class="flex">
     <div class="bg-gray-900 p-5" id="sidebar">
-
-      <div class="text-gray-400">IRLEI</div>
+      
       <div class="mt-10">
-        <a @click="setCurrentComponent('Epoque')" class="flex items-center text-gray-300 hover:text-white" href="#">
+        <div style="border: 1px solid white;"> <!--Rubrique analyse -->
+          <h3>Analysis tool</h3>
+        <a @click="setCurrentComponent('Epoque')" class="flex green items-center text-gray-300 hover:text-white" href="#">
           <img src="./assets/calendarW.svg" id="sbLogo"></img>
-          <span>Époques</span>
+          <span>Round</span>
         </a>
-        <a @click="setCurrentComponent('Query')" class="flex items-center text-gray-300 hover:text-white" href="#">
+        <a @click="setCurrentComponent('Query')" class="flex green items-center text-gray-300 hover:text-white" href="#">
           <img src="./assets/loupe.svg" id="sbLogo"></img>
-          <span>Requêtes</span>
+          <span>Query</span>
         </a>
-        <a @click="setCurrentComponent('System')" class="flex items-center text-gray-300 hover:text-white" href="#">
+        <a @click="setCurrentComponent('System')" class="flex green items-center text-gray-300 hover:text-white" href="#">
           <img src="./assets/system.svg" id="sbLogo"></img>
-          <span>Systèmes</span>
+          <span>System Diagnosis</span>
         </a>
+        <a @click="setCurrentComponent('EpoqueDelta')" class="flex green items-center text-gray-300 hover:text-white" href="#">
+          <img src="./assets/settings.svg" id="sbLogo"></img>
+          <span>Round comparison</span>
+        </a>
+      </div>
+      
+      <div style="border: 1px solid white;"> <!--Rubrique paramètre -->
+        <h3>System and user management</h3>
         <a v-if="user && user.length > 0 && (user[0].is_superuser || user.length > 1)"
-          @click="setCurrentComponent('Manage')" class="flex items-center text-gray-300 hover:text-white" href="#">
+          @click="setCurrentComponent('Manage')" class="flex green items-center text-gray-300 hover:text-white" href="#">
           <!--v-if="user.length > 1"-->
           <img src="./assets/settings.svg" id="sbLogo"></img>
           <span>Settings</span>
         </a>
-        <a class="flex items-center text-gray-300 hover:text-white" href="#">
+        <a class="green flex items-center text-gray-300 hover:text-white" href="#">
           <img src="./assets/settings.svg" id="sbLogo"></img>
           <span>Accessibility</span>
         </a>
-
+        </div>
       </div>
       <div class="absolute bottom-0 p-5">
         <div>Help</div>
@@ -185,6 +196,14 @@ select {
   height: 30%;
   left: 40%;
   top: 40%;
+}
+h3{
+  color: white;
+  font-size: 0.8rem;
+  justify-content: center;
+  display: flex;
+  padding: 0.5rem;
+  text-align: center;
 }
 
 option {
@@ -453,7 +472,8 @@ export default {
     Query,
     System,
     Profil,
-    Manage
+    Manage,
+    EpoqueDelta
   },
   setup() {
     return {
