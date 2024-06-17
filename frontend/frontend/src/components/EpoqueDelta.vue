@@ -85,6 +85,7 @@ export default {
       const svgElement = this.GroupedBarChart(filteredData, {
         x: d => d.Round,
         y: d => d.Value - groupedData.find(group => group.Round === d.Round).Mean,
+        //y: d => d.Value - d3.mean(filteredData, d => d.Value),
         z: d => d.System_id,
         marginTop: margin.top,
         marginRight: margin.right,
@@ -108,38 +109,46 @@ export default {
       d3.select("#legendBox").node().appendChild(legendElement);
 
       this.$watch('selectedMetric', (newMetric) => {
-  const newData = this.evals
-    .filter(d => d.Metric === newMetric && (this.selectedRound === null || d.Round === this.selectedRound) && d.Query === this.selectedQueries)
-    .sort((a, b) => d3.ascending(a.Round, b.Round));
+        const newData = this.evals
+          .filter(d => d.Metric === newMetric && (this.selectedRound === null || d.Round === this.selectedRound) && d.Query === this.selectedQueries)
+          .sort((a, b) => d3.ascending(a.Round, b.Round));
 
-  const [minValue, maxValue] = d3.extent(newData, d => d.Value); // Utiliser newData pour calculer min et max
+          const groupedData = Array.from(
+        d3.group(newData, d => d.Round),
+        ([key, value]) => ({
+          Round: key,
+          Mean: d3.mean(value, d => d.Value)
+        })
+      );
 
-  const newSvgElement = this.GroupedBarChart(newData, {
-    x: d => d.Round,
-    y: d => d.Value - d3.mean(newData, d => d.Value),
-    z: d => d.System_id,
-    marginTop: margin.top,
-    marginRight: margin.right,
-    marginBottom: margin.bottom,
-    marginLeft: margin.left,
-    width: this.width,
-    height: this.height,
-    yLabel: 'Value',
-    div_name: '#chart',
-    test_system: 'test_system_id',
-    colorScale: d3.scaleQuantile()
-      .domain([minValue, maxValue])
-      .range(d3.schemeSpectral[9])
-  });
+        const [minValue, maxValue] = d3.extent(newData, d => d.Value); // Utiliser newData pour calculer min et max
 
-  d3.select("#chart").selectAll("*").remove();
-  d3.select("#chart").node().appendChild(newSvgElement);
+        const newSvgElement = this.GroupedBarChart(newData, {
+          x: d => d.Round,
+          y: d => d.Value - groupedData.find(group => group.Round === d.Round).Mean,
+          z: d => d.System_id,
+          marginTop: margin.top,
+          marginRight: margin.right,
+          marginBottom: margin.bottom,
+          marginLeft: margin.left,
+          width: this.width,
+          height: this.height,
+          yLabel: 'Value',
+          div_name: '#chart',
+          test_system: 'test_system_id',
+          colorScale: d3.scaleQuantile()
+            .domain([minValue, maxValue])
+            .range(d3.schemeSpectral[9])
+        });
 
-  // Update legend
-  const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
-  d3.select("#legendBox").selectAll("*").remove();
-  d3.select("#legendBox").node().appendChild(legendElement);
-});
+        d3.select("#chart").selectAll("*").remove();
+        d3.select("#chart").node().appendChild(newSvgElement);
+
+        // Update legend
+        const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
+        d3.select("#legendBox").selectAll("*").remove();
+        d3.select("#legendBox").node().appendChild(legendElement);
+      });
 
 
       this.$watch('selectedRound', (newRound) => {
@@ -207,9 +216,9 @@ export default {
       zDomain = new d3.InternSet(zDomain);
 
       const I = d3.range(X.length).filter(i => xDomain.has(X[i]) && zDomain.has(Z[i]));
-      colorScale= d3.scaleQuantile()
-      .domain(yDomain)
-      .range(d3.schemeSpectral[9])
+      colorScale = d3.scaleQuantile()
+        .domain(yDomain)
+        .range(d3.schemeSpectral[9])
 
       const xScale = d3.scaleBand()
         .domain(X)

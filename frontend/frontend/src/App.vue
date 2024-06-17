@@ -7,6 +7,7 @@ import System from './components/System.vue';
 import Profil from './components/Profil.vue';
 import Manage from './components/Manage.vue';
 import EpoqueDelta from './components/EpoqueDelta.vue';
+import HelpContact from './components/HelpContact.vue';
 import axios from 'axios'
 const searchTerm = ref('');
 const isDropdownOpen = ref(false);
@@ -108,7 +109,7 @@ const toggleDropdown = () => {
           </a>
         </div>
       </div>
-      <div class="absolute bottom-0 p-5">
+      <div @click="setCurrentComponent('HelpContact')" class="absolute bottom-0 p-5">
         <div>Help</div>
         <div>Contact us</div>
       </div>
@@ -484,7 +485,8 @@ export default {
     System,
     Profil,
     Manage,
-    EpoqueDelta
+    EpoqueDelta,
+    HelpContact
   },
   setup() {
     return {

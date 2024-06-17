@@ -213,7 +213,7 @@ const DisplayMethod = (section, event) => {
             <option v-for="team in teams" :key="team.id" :value="team.name">{{ team.name }}</option>
           </select>
           <div> Step 3: If your systems belong to the same "family", you can name them here (optional)</div>
-          <input type="text" placeholder="System collection" v-model="systemcollection">
+          <input type="text" placeholder="System Family" v-model="systemcollection">
           <br>
           -------------------------
           <br>
@@ -696,6 +696,8 @@ table th {
   font-weight: bold;
   /* Changer la couleur du texte en noir */
 }
+
+
 
 button:hover,
 select:hover {
