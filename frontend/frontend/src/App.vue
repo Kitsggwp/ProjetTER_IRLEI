@@ -12,7 +12,7 @@ const searchTerm = ref('');
 const isDropdownOpen = ref(false);
 const currentWindow = ref('Epoque');
 const isLoginScreenDisplayed = ref(false);
-const isSignupScreenDisplayed = ref(false);
+
 
 const currentComponent = ref('Epoque'); // Par défaut : affiche Epoque
 const setCurrentComponent = (componentName) => {
@@ -52,13 +52,12 @@ const toggleDropdown = () => {
       <div v-else>
         <!-- Contenu à afficher lorsque l'utilisateur n'est pas connecté -->
         <button class="ml-4 bg-gray-700 p-2 rounded" @click="toggleDropdown" id="profileButton">
-          Log in 
+          Log in
           <i class="fas fa-chevron-down"></i>
           <img alt="Profile picture" id="pp" src="./assets/profile.png" />
         </button>
         <div v-if="isDropdownOpen" class="absolute bg-gray-700 text-white mt-1 rounded" id="profilDiv">
           <a @click="isLoginScreenDisplayed = !isLoginScreenDisplayed" class="green block" href="#"> Login</a>
-          <a @click="isSignupScreenDisplayed = !isSignupScreenDisplayed" class="green block" href="#"> Sign up</a>
         </div>
       </div>
 
@@ -68,40 +67,45 @@ const toggleDropdown = () => {
   <!-- Sidebar -->
   <div class="flex">
     <div class="bg-gray-900 p-5" id="sidebar">
-      
+
       <div class="mt-10">
         <div style="border: 1px solid white;"> <!--Rubrique analyse -->
           <h3>Analysis tool</h3>
-        <a @click="setCurrentComponent('Epoque')" class="flex green items-center text-gray-300 hover:text-white" href="#">
-          <img src="./assets/calendarW.svg" id="sbLogo"></img>
-          <span>Round</span>
-        </a>
-        <a @click="setCurrentComponent('Query')" class="flex green items-center text-gray-300 hover:text-white" href="#">
-          <img src="./assets/loupe.svg" id="sbLogo"></img>
-          <span>Query</span>
-        </a>
-        <a @click="setCurrentComponent('System')" class="flex green items-center text-gray-300 hover:text-white" href="#">
-          <img src="./assets/system.svg" id="sbLogo"></img>
-          <span>System Diagnosis</span>
-        </a>
-        <a @click="setCurrentComponent('EpoqueDelta')" class="flex green items-center text-gray-300 hover:text-white" href="#">
-          <img src="./assets/settings.svg" id="sbLogo"></img>
-          <span>Round comparison</span>
-        </a>
-      </div>
-      
-      <div style="border: 1px solid white;"> <!--Rubrique paramètre -->
-        <h3>System and user management</h3>
-        <a v-if="user && user.length > 0 && (user[0].is_superuser || user.length > 1)"
-          @click="setCurrentComponent('Manage')" class="flex green items-center text-gray-300 hover:text-white" href="#">
-          <!--v-if="user.length > 1"-->
-          <img src="./assets/settings.svg" id="sbLogo"></img>
-          <span>Settings</span>
-        </a>
-        <a class="green flex items-center text-gray-300 hover:text-white" href="#">
-          <img src="./assets/settings.svg" id="sbLogo"></img>
-          <span>Accessibility</span>
-        </a>
+          <a @click="setCurrentComponent('Epoque')" class="flex green items-center text-gray-300 hover:text-white"
+            href="#">
+            <img src="./assets/calendarW.svg" id="sbLogo"></img>
+            <span>Round</span>
+          </a>
+          <a @click="setCurrentComponent('Query')" class="flex green items-center text-gray-300 hover:text-white"
+            href="#">
+            <img src="./assets/loupe.svg" id="sbLogo"></img>
+            <span>Query</span>
+          </a>
+          <a @click="setCurrentComponent('System')" class="flex green items-center text-gray-300 hover:text-white"
+            href="#">
+            <img src="./assets/system.svg" id="sbLogo"></img>
+            <span>System Diagnosis</span>
+          </a>
+          <a @click="setCurrentComponent('EpoqueDelta')" class="flex green items-center text-gray-300 hover:text-white"
+            href="#">
+            <img src="./assets/settings.svg" id="sbLogo"></img>
+            <span>Round comparison</span>
+          </a>
+        </div>
+
+        <div style="border: 1px solid white;"> <!--Rubrique paramètre -->
+          <h3>System and user management</h3>
+          <a v-if="user && user.length > 0 && (user[0].is_superuser || user.length > 1)"
+            @click="setCurrentComponent('Manage')" class="flex green items-center text-gray-300 hover:text-white"
+            href="#">
+            <!--v-if="user.length > 1"-->
+            <img src="./assets/settings.svg" id="sbLogo"></img>
+            <span>Settings</span>
+          </a>
+          <a class="green flex items-center text-gray-300 hover:text-white" href="#">
+            <img src="./assets/settings.svg" id="sbLogo"></img>
+            <span>Accessibility</span>
+          </a>
         </div>
       </div>
       <div class="absolute bottom-0 p-5">
@@ -122,15 +126,17 @@ const toggleDropdown = () => {
         <div class="loginContent">
           </br>
 
-          <b style="padding-right: 20px;">Connexion</b>
+          <b style="padding-right: 20px;">Log In</b>
           <a style="border: 1px solid red; color: red; cursor: pointer;"
             @click="isLoginScreenDisplayed = !isLoginScreenDisplayed">X</a>
           </br>
           <div>
             <form @submit.prevent="submitFormLogin">
-              <input type="text" placeholder="Username" name="username" v-model="username" required>
-              <input type="password" placeholder="Mot de passe" name="password" v-model="password" required>
-              <button type="submit">Connexion</button>
+              <input type="text" placeholder="Username" name="username" v-model="username"
+                :class="{ 'input-error': usernameError }" required>
+              <input type="password" placeholder="Mot de passe" name="password" v-model="password"
+                :class="{ 'input-error': passwordError }" required>
+              <button type="submit">Log In</button>
             </form>
 
           </div>
@@ -197,7 +203,8 @@ select {
   left: 40%;
   top: 40%;
 }
-h3{
+
+h3 {
   color: white;
   font-size: 0.8rem;
   justify-content: center;
@@ -461,6 +468,10 @@ body {
   opacity: 0;
 }
 
+.input-error {
+  border: 1px solid red;
+}
+
 /* Ajoutez le reste des classes ici */
 </style>
 <script>
@@ -493,6 +504,8 @@ export default {
       evals: [], // stocker toutes les evals
       user: '', //stocker les infos sur l'user connecté
       uniqueSystems: '', // liste evals avec nom des systems uniques
+      usernameError: false,  // Property to track username error
+      passwordError: false,  // Property to track password error
     }
   },
   beforeCreate() {
@@ -538,25 +551,6 @@ export default {
     }
   },
   methods: {
-    //Sign up
-    submitFormSignup(e) {
-      const formData = {
-        username: this.username,
-        password: this.password,
-        email: this.username,
-      }
-
-      axios
-        .post('/api/v1/users/', formData)
-        .then(response => {
-
-          this.$router.push('/log-in')
-          console.log(response)
-        })
-        .catch(error => {
-          console.log(error)
-        })
-    },
     //Login
     submitFormLogin(e) {
       const formData = {
@@ -595,9 +589,16 @@ export default {
 
         .catch(error => {
           console.log(error)
+          if (error.response && error.response.status === 400) {
+            // Assuming 400 status indicates incorrect credentials
+            this.usernameError = true;
+            this.passwordError = true;
+          }
         })
 
     },
+
+
     //Logout
     logout() {
       const token = this.$store.state.token;

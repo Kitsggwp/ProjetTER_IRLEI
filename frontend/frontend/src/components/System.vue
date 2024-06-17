@@ -20,32 +20,34 @@ import MultiSelect from 'primevue/multiselect';
           system.Team }}</option>
         </select>
       </div>
-      <div v-if="selectedSystem">
+      <div v-if="selectedSystem" :class="{ 'text-red-500': selectedRound.length === 0 }">
         Round :
         <select v-model="selectedRound" class="mr-2 p-2" @change="getQueryandMetricbySystemandRoundselected">
           <option value="">Select Round</option>
-          <option v-for="round in uniqueRounds" :key="round" :value="round">{{ round }}</option>
+          <option v-for=" round  in  uniqueRounds " :key="round" :value="round">{{ round }}</option>
         </select>
       </div>
-      <div v-if="selectedRound">
+      <div v-if="selectedRound.length > 0" :class="{ 'text-red-500': selectedQuery.length === 0 }">
         Queries :
         <MultiSelect v-model="selectedQuery" :maxSelectedLabels="3" display="chip" selectedItemsLabel
           :options="uniqueQueries" placeholder="Select Queries" filter class="w-full md:w-20rem"
           @change="fetchMetricsData" />
-        <div>
-          {{ this.selectedQuery.length }} queries selected.
+        <div :class="{ 'text-red-500': selectedQuery.length === 0 }">
+          {{ selectedQuery.length }} queries selected.
         </div>
 
       </div>
     </div>
     <div>
     </div>
-    <div class="message" v-if="selectedQuery.length === 0 && selectedRound.length > 0">Select at least one query !</div>
-    <table class="table-auto w-full bg-white">
+    <div class="message" v-if="selectedQuery.length === 0">
+      Fill in the parameters ! (System, round and queries)</div>
+    <table v-else class="table-auto w-full bg-white">
       <thead>
         <tr>
           <th>Metric</th>
-          <th>Average value for the selected system</th>
+          <th>Average value for the {{ selectedSystem
+            }}</th>
           <th>Average on all systems</th>
           <th>Maximum value on all systems</th>
           <th>Minimum value on all systems</th>
@@ -54,7 +56,7 @@ import MultiSelect from 'primevue/multiselect';
         </tr>
       </thead>
       <tbody>
-        <tr v-for="metric in metricsData" :key="metric.name">
+        <tr v-for=" metric  in  metricsData " :key="metric.name">
           <td
             title="
 If the average value of the selected system is higher than that of all systems then there is a green arrow otherwise if it is lower a red arrow if it equals nothing">
@@ -105,9 +107,11 @@ export default {
   },
   created() {
     this.getSystem();
+    //this.getAverage("UGA_English_BM25", "q07225045", [], "map")
   },
   methods: {
-    // 
+    // Si un des paramètre est vide, cela les prends tous en comptes.
+    // Par exemple getAverage("UGA_English_BM25", "q07225045", [], "map") prend en compte tous les rounds.
     async getAverage(system, query, round, metric) {
       try {
         const response = await axios.get('/api/eval/average-values/', {
@@ -155,6 +159,7 @@ export default {
       this.uniqueRounds = uniqueRounds;
 
       this.selectedQuery = []
+      this.selectedRound = []
 
     },
     async getQueryandMetricbySystemandRoundselected() {

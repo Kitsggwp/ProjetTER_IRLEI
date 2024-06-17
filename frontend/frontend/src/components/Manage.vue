@@ -349,7 +349,7 @@ export default {
     };
   },
   created() {
-    // Récupérer le token d'authentification depuis le local storage ou store Vuex
+    // Récupérer le token d'authentification depuis le store Vuex
     const token = this.$store.state.token;
     if (!token) {
       console.error('Token d\'authentification non trouvé.');
@@ -410,7 +410,7 @@ export default {
     },
 
     getUsers() {
-      axios.get('api/users/', {
+      axios.get('api/user/userslist', {
         headers: {
           'Authorization': `Token ${this.$store.state.token}`
         }
@@ -657,8 +657,6 @@ export default {
       });
     },
 
-
-
     submitFormAddEval(event) {
       const files = event.target[0].files;
       this.traverseFiles(files);
@@ -735,7 +733,7 @@ option {
 .custom-button {
   display: inline-block;
   padding: 10px 20px;
-  background-color: #007bff;
+  background-color: #284723;
   color: white;
   border: none;
   border-radius: 4px;
@@ -745,6 +743,6 @@ option {
 }
 
 .custom-button:hover {
-  background-color: #0056b3;
+  background-color: #35612f;
 }
 </style>
