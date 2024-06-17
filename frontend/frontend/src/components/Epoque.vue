@@ -19,11 +19,11 @@ export default {
       yAxis: null,
       svg: null,
       width: 800,
-      height: 400,
+      height: 600,
       isEpochDropdownOpen: false,
       isMeasureDropdownOpen: false,
       displayMeanMedian: false,
-      displaySignificativeDifference: false,
+      displayLabel: false,
     };
   },
   methods: {
@@ -40,6 +40,15 @@ export default {
     },
     toggleMeasureDropdown() {
       this.isMeasureDropdownOpen = !this.isMeasureDropdownOpen;
+    },
+    toggleDisplayLabel() {
+      this.displayLabel = !this.displayLabel;
+      if (this.displayLabel) {
+        d3.selectAll(".label").style("display", "block");
+      } else {
+        d3.selectAll(".label").style("display", "none");
+      }
+      
     },
     getEval() {
       axios.get('/api/eval/', {
@@ -64,9 +73,10 @@ export default {
       const height = this.height - margin.top - margin.bottom;
 
       const filteredData = data
-        .filter(d => d.Metric === this.selectedMetric && (this.selectedRound === null || d.Round === this.selectedRound)&&d.Query===this.selectedQueries)
-        .sort((a, b) => d3.ascending(a.Round, b.Round))
-        .sort((a, b) => d3.descending(a.Value, b.Value));
+        .filter(d => d.Metric === this.selectedMetric && (this.selectedRound === null || d.Round === this.selectedRound) && d.Query === this.selectedQueries)
+        .sort((a, b) => d3.descending(a.Value, b.Value))
+        .sort((a, b) => d3.ascending(a.Round, b.Round));
+        
 
       // Ajuster l'échelle de couleur
       const colorScale = d3.scaleQuantile()
@@ -100,9 +110,9 @@ export default {
 
       this.$watch('selectedMetric', (newMetric) => {
         const newData = this.evals
-          .filter(d => d.Metric === newMetric && (this.selectedRound === null || d.Round === this.selectedRound)&&d.Query===this.selectedQueries)
-          .sort((a, b) => d3.ascending(a.Round, b.Round))
-          .sort((a, b) => d3.descending(a.Value, b.Value));
+          .filter(d => d.Metric === newMetric && (this.selectedRound === null || d.Round === this.selectedRound) && d.Query === this.selectedQueries)
+          .sort((a, b) => d3.descending(a.Value, b.Value))
+          .sort((a, b) => d3.ascending(a.Round, b.Round));
 
         const newSvgElement = this.GroupedBarChart(newData, {
           x: d => d.Round,
@@ -130,9 +140,9 @@ export default {
 
       this.$watch('selectedRound', (newRound) => {
         const newData = this.evals
-          .filter(d => d.Metric === this.selectedMetric && (newRound === null || d.Round === newRound)&&d.Query===this.selectedQueries)
-          .sort((a, b) => d3.ascending(a.Round, b.Round))
-          .sort((a, b) => d3.descending(a.Value, b.Value));
+          .filter(d => d.Metric === this.selectedMetric && (newRound === null || d.Round === newRound) && d.Query === this.selectedQueries)
+          .sort((a, b) => d3.descending(a.Value, b.Value))
+          .sort((a, b) => d3.ascending(a.Round, b.Round));
 
         const newSvgElement = this.GroupedBarChart(newData, {
           x: d => d.Round,
@@ -183,10 +193,11 @@ export default {
       test_system,
       colorScale
     } = {}) {
+      
       const X = d3.map(data, x);
       const Y = d3.map(data, y);
       const Z = d3.map(data, z);
-
+      
       if (xDomain === undefined) xDomain = X;
       if (yDomain === undefined) yDomain = [d3.min(Y) < 0 ? d3.min(Y) : 0, d3.max(Y) < 0 ? 0 : d3.max(Y)];
       if (zDomain === undefined) zDomain = Z;
@@ -208,15 +219,19 @@ export default {
         .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
 
       svg.append("g")
-        .attr("transform", `translate(${marginLeft},0)`)
+        .attr("transform", `translate(${marginLeft},0 )`)
         .call(d3.axisLeft(yScale).ticks(height / 60, yFormat))
-        .call(g => g.select(".domain").remove())
+        .call(g => g.select(".domain"))
         .call(g => g.append("text")
           .attr("x", -marginLeft)
-          .attr("y", 10)
+          .attr("y", "-15px")
           .attr("fill", "currentColor")
           .attr("text-anchor", "start")
-          .text(yLabel));
+          .text(yLabel))
+        .append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", "-15px");
+        
 
       const bar = svg.append("g")
         .selectAll("rect")
@@ -227,11 +242,35 @@ export default {
         .attr("width", xzScale.bandwidth())
         .attr("height", i => yScale(0) - yScale(Y[i]))
         .attr("fill", i => Z[i] === test_system ? '#ff0000' : color(Y[i]))
+        .attr("title", i => Y[i])
         .on("mouseover", function (event, d) {
           d3.select(".detailsBox")
             .html(`<p>Round: ${X[d]}</p><p>Value: ${Y[d]}</p><p>System ID: ${Z[d]}</p>`)
             .style("display", "block");
         });
+        this.$watch('displayLabel', (newDisplayLabel) => {
+          
+            toggleDisplayLabel();
+          
+        });
+      svg.selectAll(".text")
+        .data(I)
+        .enter()
+        .append("text")
+        .attr("class", "label")
+        //.attr("x", i => xScale(X[i]) + xzScale(Z[i]))
+        //.attr("y", i => yScale(Y[i]))
+        //.attr("x", (function(d) { return x(d.Round); }  ))
+        //.attr("y", function(d) { return y(d.System_id); })
+
+        .attr("dy", ".75em")
+        .text(function (i) { return Z[i]; })
+        .attr("fill", "white")
+        .attr("transform", i => {
+          return 'translate(' + (parseInt(xScale(X[i])) + parseInt(xzScale(Z[i]))+15 )+ ',' + parseInt(yScale(Y[i])+10) + '),rotate(90)';
+        })
+        .attr('x', 0)
+        .attr('y', 0)
 
       if (title) bar.append("title")
         .text(title);
@@ -240,7 +279,7 @@ export default {
         .attr("transform", `translate(0,${height - marginBottom})`)
         .call(d3.axisBottom(xScale).tickSizeOuter(0));
 
-  
+
 
       return svg.node();
     },
@@ -311,7 +350,7 @@ export default {
           .attr("width", (d, i) => x(i) - x(i - 1))
           .attr("height", height - marginTop - marginBottom)
           .attr("fill", d => d)
-          
+
 
         if (tickValues === undefined) tickValues = d3.range(thresholds.length);
         tickFormat = thresholdFormat;
@@ -350,7 +389,7 @@ export default {
   },
   mounted() {
     this.getEval();
-    
+
   }
 };
 </script>
@@ -361,16 +400,7 @@ export default {
     <div class="flex justify-between items-center mb-5">
       <div class="subtitle">Rounds Analysis</div>
       <div>
-        <a>
-          <button @click="toggleFilterDropdown" class="cursor-pointer">
-            <img id="sbLogo" src="../assets/filter.svg" alt="Filter Icon"></img>
-          </button>
-        </a>
-        <a>
-          <button @click="toggleGearDropdown" class="cursor-pointer">
-            <img id="sbLogo" src="../assets/gear.svg" alt="Gear Icon"></img>
-          </button>
-        </a>
+
       </div>
     </div>
     <div class="grid grid-cols-2 gap-4 mb-5">
@@ -412,17 +442,16 @@ export default {
           </div>
         </Transition>
       </div>
+      <div class="options">
+        <input v-model="displayLabel" @click="toggleDisplayLabel()" class="ml-4" type="button" /><span>Label</span>
+      </div>
     </div>
     <div class="mb-5 white">
-      Highlight :
-      <select class="bg-gray-800 text-white p-2 rounded" name="highlightEpoque" id="highlightEpoque">
-        <option>X</option>
-        <option>Best/Worst Overall</option>
-      </select>
 
-      <input v-model="displayMeanMedian" class="ml-4" type="checkbox" /> <span>Display Mean</span>
+
+
       <!--input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" /><span>Display Significative difference only?</span-->
-      
+
     </div>
     <!-- Placeholder for graph -->
     <div id="graph">
@@ -431,10 +460,10 @@ export default {
 
       </div>
       <br />
-       <div class="flex">
-         <div class="detailsBox"></div>
-         <div id="legendBox"></div> 
-       </div>
+      <div class="flex">
+        <div class="detailsBox"></div>
+        <div id="legendBox"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -448,6 +477,13 @@ export default {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+.label {
+font-size: 10px;
+padding: 2px;
+margin:2px;
+
+}
+
 #legendBox {
   border: 1px solid white;
   width: 500px;
@@ -455,6 +491,7 @@ export default {
   color: white;
   font-family: Arial, Helvetica, sans-serif;
 }
+
 
 option {
   color: black
