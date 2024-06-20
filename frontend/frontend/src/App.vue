@@ -103,15 +103,16 @@ const toggleDropdown = () => {
             <img src="./assets/settings.svg" id="sbLogo"></img>
             <span>Settings</span>
           </a>
-          <a class="green flex items-center text-gray-300 hover:text-white" href="#">
+          <!--Todo dont forget to delete the display=none -->
+          <a class="green flex items-center text-gray-300 hover:text-white" style="display: none;" href="#"> 
             <img src="./assets/settings.svg" id="sbLogo"></img>
             <span>Accessibility</span>
           </a>
         </div>
       </div>
       <div @click="setCurrentComponent('HelpContact')" class="absolute bottom-0 p-5">
-        <div>Help</div>
-        <div>Contact us</div>
+        <a>Help</a>
+        <a>Contact us</a>
       </div>
     </div>
     <!-- Main content -->
