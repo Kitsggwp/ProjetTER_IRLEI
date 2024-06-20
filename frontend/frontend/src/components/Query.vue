@@ -375,18 +375,7 @@ export default {
   <div class="bg-gray-700 p-5 rounded-lg framed">
     <div class="flex justify-between items-center mb-5">
       <div class="subtitle">Queries analysis</div>
-      <div>
-        <a>
-          <button @click="toggleFilterDropdown" class="cursor-pointer">
-            <img id="sbLogo" src="../assets/filter.svg" alt="Filter Icon"></img>
-          </button>
-        </a>
-        <a>
-          <button @click="toggleGearDropdown" class="cursor-pointer">
-            <img id="sbLogo" src="../assets/gear.svg" alt="Gear Icon"></img>
-          </button>  
-        </a>
-      </div>
+
     </div>
     <div class="grid grid-cols-2 gap-4 mb-5">
       <div class="relative inline-block">
@@ -435,14 +424,7 @@ export default {
         </Transition>
       </div>
     </div>
-    <div class="mb-5">
-      <select v-model="displayOption" class="bg-gray-800 text-white p-2 rounded">
-        <option>Best/Worst Overall</option>
-      </select>
-      <input v-model="displayMeanMedian" class="ml-4" type="checkbox" />Display Mean/Median?
-      <input v-model="displaySignificativeDifference" class="ml-4" type="checkbox" />Display Significative
-      difference only?
-    </div>
+ 
     <!-- Placeholder for graph -->
     <div id="graph">
 

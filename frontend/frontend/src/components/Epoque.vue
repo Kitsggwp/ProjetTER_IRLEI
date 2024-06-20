@@ -24,6 +24,7 @@ export default {
       isMeasureDropdownOpen: false,
       displayMeanMedian: false,
       displayLabel: false,
+      checked:false
     };
   },
   methods: {
@@ -42,14 +43,15 @@ export default {
       this.isMeasureDropdownOpen = !this.isMeasureDropdownOpen;
     },
     toggleDisplayLabel() {
-      this.displayLabel = !this.displayLabel;
       if (this.displayLabel) {
         d3.selectAll(".label").style("display", "block");
       } else {
         d3.selectAll(".label").style("display", "none");
       }
       
+      
     },
+
     getEval() {
       axios.get('/api/eval/', {
         headers: {
@@ -67,7 +69,9 @@ export default {
           console.error(error);
         });
     },
+    
     createChart(data) {
+      
       const margin = { top: 30, right: 0, bottom: 30, left: 40 };
       const width = this.width - margin.left - margin.right;
       const height = this.height - margin.top - margin.bottom;
@@ -79,9 +83,9 @@ export default {
         
 
       // Ajuster l'échelle de couleur
-      const colorScale = d3.scaleQuantile()
-        .domain([0, 1])
-        .range(d3.schemeSpectral[9]);
+      const colorScale = d3.scaleLinear()
+        .domain([0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1])
+        .range(d3.schemeSpectral[10]);
 
       const svgElement = this.GroupedBarChart(filteredData, {
         x: d => d.Round,
@@ -107,12 +111,16 @@ export default {
       const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
       d3.select("#legendBox").selectAll("*").remove();
       d3.select("#legendBox").node().appendChild(legendElement);
+      
 
       this.$watch('selectedMetric', (newMetric) => {
         const newData = this.evals
           .filter(d => d.Metric === newMetric && (this.selectedRound === null || d.Round === this.selectedRound) && d.Query === this.selectedQueries)
           .sort((a, b) => d3.descending(a.Value, b.Value))
           .sort((a, b) => d3.ascending(a.Round, b.Round));
+          
+
+          
 
         const newSvgElement = this.GroupedBarChart(newData, {
           x: d => d.Round,
@@ -161,7 +169,7 @@ export default {
         });
         d3.select("#chart").selectAll("*").remove();
         d3.select("#chart").node().appendChild(newSvgElement);
-
+        
         // Update legend
         const legendElement = this.Legend(colorScale, { title: "Value", tickFormat: ".2f" });
         d3.select("#legendBox").selectAll("*").remove();
@@ -248,16 +256,15 @@ export default {
             .html(`<p>Round: ${X[d]}</p><p>Value: ${Y[d]}</p><p>System ID: ${Z[d]}</p>`)
             .style("display", "block");
         });
-        this.$watch('displayLabel', (newDisplayLabel) => {
-          
-            toggleDisplayLabel();
-          
-        });
+       
+       
       svg.selectAll(".text")
         .data(I)
         .enter()
         .append("text")
         .attr("class", "label")
+
+      
         //.attr("x", i => xScale(X[i]) + xzScale(Z[i]))
         //.attr("y", i => yScale(Y[i]))
         //.attr("x", (function(d) { return x(d.Round); }  ))
@@ -272,107 +279,79 @@ export default {
         .attr('x', 0)
         .attr('y', 0)
 
+    if(this.displayLabel){
+          d3.selectAll(".label").style("display", "block");
+        } else {
+          d3.selectAll(".label").style("display", "none");
+        }
       if (title) bar.append("title")
         .text(title);
 
       svg.append("g")
         .attr("transform", `translate(0,${height - marginBottom})`)
         .call(d3.axisBottom(xScale).tickSizeOuter(0));
-
+      
+        
 
 
       return svg.node();
     },
     Legend(color, {
-      title,
-      tickSize = 6,
-      width = 320,
-      height = 44 + tickSize,
-      marginTop = 18,
-      marginRight = 0,
-      marginBottom = 16 + tickSize,
-      marginLeft = 0,
-      ticks = width / 64,
-      tickFormat,
-      tickValues
-    } = {}) {
-      const svg = d3.create("svg")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("viewBox", [0, 0, width, height])
-        .style("overflow", "visible")
-        .style("display", "block");
+  title,
+  tickSize = 6,
+  width = 320,
+  height = 44 + tickSize,
+  marginTop = 18,
+  marginRight = 0,
+  marginBottom = 16 + tickSize,
+  marginLeft = 0,
+  ticks = width / 64,
+  tickFormat,
+  tickValues
+} = {}) {
+  const svg = d3.create("svg")
+    .attr("width", width)
+    .attr("height", height)
+    .attr("viewBox", [0, 0, width, height])
+    .style("overflow", "visible")
+    .style("display", "block");
 
-      let tickAdjust = g => g.selectAll(".tick line").attr("y1", marginTop + marginBottom - height);
-      let x;
+  let x;
 
-      // Continuous
-      if (color.interpolate) {
-        const n = Math.min(color.domain().length, color.range().length);
+  // Discrete (Ordinal) Scale
+  const categories = color.domain().slice(0, 10).sort((a, b) => a - b);
+  
+  x = d3.scaleBand()
+    .domain(categories)
+    .range([marginLeft, width - marginRight]);
+  
+    
 
-        x = color.copy().rangeRound(d3.quantize(d3.interpolate(marginLeft, width - marginRight), n));
+  svg.append("g")
+    .selectAll("rect")
+    .data(categories)
+    .join("rect")
+    .attr("x", d => x(d))
+    .attr("y", marginTop)
+    .attr("width", x.bandwidth())
+    .attr("height", height - marginTop - marginBottom)
+    .attr("fill", d => color(d));
 
-        svg.append("image")
-          .attr("x", marginLeft)
-          .attr("y", marginTop)
-          .attr("width", width - marginLeft - marginRight)
-          .attr("height", height - marginTop - marginBottom)
-          .attr("preserveAspectRatio", "none")
-          .attr("xlink:href", ramp(color.copy().domain(d3.quantize(d3.interpolate(0, 1), n))).toDataURL());
+  svg.append("g")
+    .attr("transform", `translate(0,${height - marginBottom})`)
+    .call(d3.axisBottom(x).ticks(ticks).tickValues([0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1.0]))
+    .call(d3.axisBottom(x).tickSize(0).tickFormat(d3.format(".2f")))
+    .select(".domain").remove();
 
-        // scaleSequentialQuantile doesn’t implement ticks or tickFormat.
-        if (!x.ticks) {
-          if (tickValues === undefined) tickValues = d3.range(n);
-          if (typeof tickFormat !== "function") tickFormat = d3.format(tickFormat === undefined ? ",f" : tickFormat);
-        }
-      }
+  svg.append("text")
+    .attr("x", marginLeft)
+    .attr("y", marginTop + marginBottom - height - 6)
+    .attr("fill", "currentColor")
+    .attr("text-anchor", "start")
+    .text(title);
 
-      // Discrete
-      else if (color.invertExtent) {
-        const thresholds = color.thresholds ? color.thresholds() // scaleQuantize
-          : color.quantiles ? color.quantiles() // scaleQuantile
-            : color.domain(); // scaleThreshold
+  return svg.node();
 
-        const thresholdFormat = tickFormat === undefined ? d => d
-          : typeof tickFormat === "string" ? d3.format(tickFormat)
-            : tickFormat;
-
-        x = d3.scaleLinear()
-          .domain([-1, color.range().length - 1])
-          .rangeRound([marginLeft, width - marginRight]);
-
-        svg.append("g")
-          .selectAll("rect")
-          .data(color.range())
-          .join("rect")
-          .attr("x", (d, i) => x(i - 1))
-          .attr("y", marginTop)
-          .attr("width", (d, i) => x(i) - x(i - 1))
-          .attr("height", height - marginTop - marginBottom)
-          .attr("fill", d => d)
-
-
-        if (tickValues === undefined) tickValues = d3.range(thresholds.length);
-        tickFormat = thresholdFormat;
-      }
-
-      svg.append("g")
-        .attr("transform", `translate(0,${height - marginBottom})`)
-        .call(d3.axisBottom(x)
-          .ticks(ticks, typeof tickFormat === "string" ? tickFormat : undefined)
-          .tickFormat(typeof tickFormat === "function" ? tickFormat : undefined)
-          .tickSize(tickSize)
-          .tickValues(tickValues))
-        .call(tickAdjust)
-        .call(g => g.select(".domain").remove())
-        .call(g => g.append("text")
-          .attr("x", marginLeft)
-          .attr("y", marginTop + marginBottom - height - 6)
-          .attr("fill", "currentColor")
-          .attr("text-anchor", "start")
-          .text(title));
-
-      return svg.node();
 
       function ramp(color, n = 256) {
         const canvas = document.createElement("canvas");
@@ -385,13 +364,20 @@ export default {
         }
         return canvas;
       }
+    
     },
+    
+    
   },
+  
+  
+  
   mounted() {
     this.getEval();
 
   }
 };
+
 </script>
 
 
@@ -443,7 +429,8 @@ export default {
         </Transition>
       </div>
       <div class="options">
-        <input v-model="displayLabel" @click="toggleDisplayLabel()" class="ml-4" type="button" /><span>Label</span>
+        <input id="labelCB" style="margin: 10px" @click="toggleDisplayLabel"  class="ml-4" type="button" value="Hide system label" />
+        <span class="info"> <br/>Data are system ordered, from the better performing, to the worst performing</span>
       </div>
     </div>
     <div class="mb-5 white">
@@ -490,6 +477,11 @@ margin:2px;
   height: 80px;
   color: white;
   font-family: Arial, Helvetica, sans-serif;
+}
+.info{
+  padding: 20px;
+  font-size: 12px;
+
 }
 
 
