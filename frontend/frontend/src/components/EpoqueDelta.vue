@@ -392,18 +392,7 @@ export default {
   <div class="bg-gray-700 p-5 rounded-lg framed">
     <div class="flex justify-between items-center mb-5">
       <div class="subtitle">Rounds Analysis</div>
-      <div>
-        <a>
-          <button @click="toggleFilterDropdown" class="cursor-pointer">
-            <img id="sbLogo" src="../assets/filter.svg" alt="Filter Icon"></img>
-          </button>
-        </a>
-        <a>
-          <button @click="toggleGearDropdown" class="cursor-pointer">
-            <img id="sbLogo" src="../assets/gear.svg" alt="Gear Icon"></img>
-          </button>
-        </a>
-      </div>
+
     </div>
     <div class="grid grid-cols-2 gap-4 mb-5">
       <div class="relative inline-block">
